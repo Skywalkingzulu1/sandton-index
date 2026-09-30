@@ -1,0 +1,15 @@
+# Generated site output. Rebuilt by 09_build_sites.py on every push.
+site/
+
+# Local scratch
+*.bak
+*.tmp
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
