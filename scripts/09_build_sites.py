@@ -80,71 +80,230 @@ SCHEMA_TYPE_BY_HUB = {
 }
 
 CSS = """
-:root{--ink:#12211a;--mut:#5c6b63;--line:#e3e8e4;--bg:#fbfcfa;--card:#fff;
---acc:#1d6b45;--acc-d:#12502f;--warn:#8a5a00;--warn-bg:#fff8e6;--r:12px}
+:root{
+--primary:#0052cc;--primary-dark:#0747a6;--primary-darker:#052d6e;
+--secondary:#00a3bf;--accent:#36b37e;--accent-dark:#2a8f63;
+--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--light:#f8fafc;
+--footer:#0f172a;--white:#fff;
+--tint-blue:#eef4ff;--tint-green:#e3fcef;--tint-teal:#e6fcff;
+--tint-amber:#fff8e1;--amber:#f59e0b;
+--shadow-sm:0 1px 3px rgba(0,0,0,.08);
+--shadow-md:0 4px 20px rgba(0,0,0,.08);
+--shadow-lg:0 10px 40px rgba(0,0,0,.12);
+--shadow-glow:0 0 30px rgba(0,82,204,.15);
+--r:16px;--r-sm:12px;--r-xs:8px;
+}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
-Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
-a{color:var(--acc);text-decoration:none}
-a:hover{text-decoration:underline}
-.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-header.site{background:var(--card);border-bottom:1px solid var(--line);
-position:sticky;top:0;z-index:20}
-header.site .wrap{display:flex;align-items:center;gap:16px;
-justify-content:space-between;height:62px}
-.brand{font-weight:800;font-size:19px;color:var(--ink);letter-spacing:-.3px}
-.brand span{color:var(--acc)}
-nav.site a{margin-left:18px;font-size:14px;color:var(--mut);font-weight:500}
-.hero{padding:52px 0 34px;background:linear-gradient(180deg,#f2f7f3,#fbfcfa)}
-.hero h1{margin:0 0 12px;font-size:clamp(28px,4.4vw,44px);line-height:1.12;
-letter-spacing:-1px}
-.hero p{margin:0;color:var(--mut);font-size:18px;max-width:62ch}
-.crumb{font-size:13px;color:var(--mut);padding:16px 0 0}
-.crumb a{color:var(--mut)}
-h2.sec{font-size:14px;text-transform:uppercase;letter-spacing:.09em;
-color:var(--mut);font-weight:700;margin:38px 0 14px}
-.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-padding:17px 18px;display:flex;flex-direction:column;gap:8px}
-.card h3{margin:0;font-size:17px;line-height:1.3}
-.card .meta{font-size:13.5px;color:var(--mut)}
-.card .acts{margin-top:auto;padding-top:9px;display:flex;gap:14px;font-size:14px;
+html{scroll-behavior:smooth}
+body{margin:0;font:16px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",
+Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--white);
+-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:none}
+.wrap{max-width:1100px;margin:0 auto;padding:0 2rem}
+
+/* ===== NAVBAR (transparent over the gradient hero, solid once scrolled) ===== */
+header.site{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.9);
+backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
+header.site .wrap{display:flex;align-items:center;gap:1rem;
+justify-content:space-between;height:66px}
+.brand{font-weight:800;font-size:1.22rem;color:var(--text);letter-spacing:-.5px;
+display:flex;align-items:center;gap:.55rem}
+.brand .mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;
+font-size:.95rem;box-shadow:0 2px 8px rgba(0,82,204,.3)}
+.brand b{color:var(--primary);font-weight:800}
+nav.site{display:flex;align-items:center;gap:1.9rem}
+nav.site a{color:var(--muted);font-weight:500;font-size:.9rem;
+letter-spacing:.01em;transition:color .2s}
+nav.site a:hover{color:var(--primary)}
+.nav-cta{background:var(--primary);color:#fff!important;padding:.5rem 1.05rem;
+border-radius:var(--r-xs);font-weight:600!important;box-shadow:var(--shadow-sm)}
+.nav-cta:hover{background:var(--primary-dark)}
+
+/* ===== HERO ===== */
+.hero{position:relative;overflow:hidden;
+background:linear-gradient(135deg,var(--primary-darker) 0%,var(--primary-dark) 40%,
+var(--primary) 100%);color:#fff;padding:4.5rem 0 4rem;margin-bottom:-3rem}
+.hero::before{content:'';position:absolute;width:620px;height:620px;border-radius:50%;
+background:radial-gradient(circle,rgba(0,163,191,.28) 0%,transparent 70%);
+top:-180px;right:-160px;animation:blob 17s ease-in-out infinite}
+.hero::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;
+background:radial-gradient(circle,rgba(54,179,126,.20) 0%,transparent 70%);
+bottom:-140px;left:-110px;animation:blob 22s ease-in-out infinite reverse}
+@keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}
+66%{transform:translate(-20px,20px) scale(.95)}}
+.hero-grid{position:absolute;inset:0;pointer-events:none;
+background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);
+background-size:40px 40px}
+.hero .wrap{position:relative;z-index:2}
+.hero h1{margin:0 0 1rem;font-size:clamp(2.1rem,4.6vw,3.5rem);font-weight:900;
+line-height:1.1;letter-spacing:-1.4px;max-width:19ch}
+.hero h1 .grad{background:linear-gradient(135deg,#4fc3f7,#5ce0a0);
+-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{margin:0;color:rgba(255,255,255,.78);font-size:1.05rem;max-width:62ch;
+line-height:1.7}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:.5rem;margin-bottom:1.1rem;
+background:rgba(54,179,126,.15);border:1px solid rgba(54,179,126,.32);
+color:#5ce0a0;padding:.35rem .95rem;border-radius:50px;font-size:.78rem;
 font-weight:600}
-.hrs{font-size:13.5px;color:var(--mut)}
-.hrs .row{display:flex;justify-content:space-between;gap:12px;padding:1px 0}
-.hrs .row.today{color:var(--acc);font-weight:700}
-.map{width:100%;height:290px;border:0;border-radius:var(--r);display:block;
-border:1px solid var(--line)}
-.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;
-padding:2px 8px;border-radius:99px;text-transform:uppercase}
-.b-a{background:#e7f4ec;color:var(--acc-d)}
-.b-b{background:#eef1f6;color:#3d4d63}
-.b-c{background:#f1f1f1;color:#6b6b6b}
-.b-none{background:#f4f4f4;color:#8a8a8a}
-.guess{background:var(--warn-bg);border:1px solid #f0dca8;border-radius:9px;
-padding:11px 13px;font-size:13.5px;color:var(--warn);margin:12px 0}
-.guess strong{color:#6b4500}
-.cta{background:var(--acc);color:#fff;border-radius:var(--r);padding:26px;
-margin:34px 0;text-align:center}
-.cta h2{color:#fff;margin:0 0 8px;font-size:22px}
-.cta p{color:#dcebe2;margin:0 0 16px}
-.btn{display:inline-block;background:#fff;color:var(--acc-d);padding:10px 20px;
-border-radius:9px;font-weight:700;font-size:15px}
-.btn:hover{text-decoration:none;opacity:.92}
-.sib{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-padding:15px 17px;margin-bottom:10px}
-.sib h3{margin:0 0 5px;font-size:16px}
-.empty{color:var(--mut);padding:30px 0;font-size:16px}
-footer.site{border-top:1px solid var(--line);margin-top:56px;padding:26px 0;
-font-size:13.5px;color:var(--mut);background:var(--card)}
-.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.breadcrumb-trail{font-size:13px;color:var(--mut);padding:14px 0 0}
-@media(max-width:640px){
-nav.site a{margin-left:11px;font-size:13px}
-.hero{padding:34px 0 24px}
-.card{padding:15px 16px}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:#5ce0a0;
+animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ===== BREADCRUMB (sits below the hero) ===== */
+.crumb{position:relative;z-index:2;padding-top:3.6rem;font-size:.82rem;
+color:rgba(255,255,255,.62)}
+.crumb a{color:rgba(255,255,255,.8)}
+.crumb a:hover{color:#fff;text-decoration:underline}
+
+/* ===== STAT CARDS (overlap the hero) ===== */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;
+margin:0 0 2.5rem;position:relative;z-index:3}
+.stat{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+padding:1.4rem 1.1rem;text-align:center;box-shadow:var(--shadow-lg);
+transition:transform .3s,box-shadow .3s}
+.stat:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg),var(--shadow-glow)}
+.stat-ico{width:42px;height:42px;border-radius:11px;margin:0 auto .7rem;
+display:grid;place-items:center;font-size:1.05rem}
+.ico-blue{background:var(--tint-blue);color:var(--primary)}
+.ico-green{background:var(--tint-green);color:var(--accent)}
+.ico-teal{background:var(--tint-teal);color:var(--secondary)}
+.ico-amber{background:var(--tint-amber);color:var(--amber)}
+.stat b{display:block;font-size:1.75rem;font-weight:900;line-height:1;
+letter-spacing:-.8px;color:var(--text)}
+.stat span{font-size:.72rem;color:var(--muted);font-weight:700;
+text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem;display:block}
+
+/* ===== SECTIONS ===== */
+h2.sec{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;
+color:var(--muted);font-weight:700;margin:2.4rem 0 1rem;
+display:flex;align-items:center;gap:.6rem}
+h2.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.badge-cat{display:inline-flex;align-items:center;gap:.4rem;background:var(--tint-blue);
+color:var(--primary);padding:.3rem .85rem;border-radius:50px;font-size:.72rem;
+font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem}
+h1.body{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.7px;
+margin:0 0 .5rem;color:var(--text);line-height:1.15}
+.lede{color:var(--muted);font-size:1.02rem;max-width:64ch;margin:0}
+
+/* ===== GRID + CARDS ===== */
+.grid{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:.5rem;
+position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s,border-color .3s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--primary),var(--secondary));opacity:0;
+transition:opacity .3s}
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
+.card:hover::before{opacity:1}
+.card h3{margin:0;font-size:1.05rem;line-height:1.3;font-weight:700}
+.card h3 a{color:var(--text)}
+.card h3 a:hover{color:var(--primary)}
+.card .meta{font-size:.85rem;color:var(--muted)}
+.card .cat{font-size:.72rem;font-weight:700;color:var(--primary);
+text-transform:uppercase;letter-spacing:.05em}
+.card .acts{margin-top:auto;padding-top:.6rem;display:flex;flex-wrap:wrap;gap:1rem;
+font-size:.85rem;font-weight:600}
+.card .acts a{color:var(--primary)}
+.card .acts a:hover{text-decoration:underline}
+
+/* ===== TIER BADGES ===== */
+.badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;
+font-weight:700;letter-spacing:.05em;padding:.28rem .7rem;border-radius:50px;
+text-transform:uppercase}
+.b-a{background:var(--tint-green);color:var(--accent-dark)}
+.b-b{background:var(--tint-blue);color:var(--primary)}
+.b-c{background:#f1f5f9;color:var(--muted)}
+
+/* ===== HOURS ===== */
+.hrs{font-size:.86rem;color:var(--muted)}
+.hrs .row{display:flex;justify-content:space-between;gap:1rem;padding:.12rem 0}
+.hrs .row.today{color:var(--primary);font-weight:700}
+.hrs strong{color:var(--text);display:block;margin-bottom:.35rem;font-size:.8rem;
+text-transform:uppercase;letter-spacing:.06em}
+.notice{background:var(--tint-amber);border:1px solid #fde68a;border-radius:10px;
+padding:.8rem 1rem;font-size:.84rem;color:#92400e;margin-top:.75rem;line-height:1.55}
+.notice strong{color:#78350f}
+
+/* ===== MAP ===== */
+.map{width:100%;height:300px;border:0;border-radius:var(--r);display:block;
+border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+
+/* ===== CTA ===== */
+.cta{background:linear-gradient(135deg,var(--primary-darker) 0%,var(--primary-dark) 50%,
+var(--primary) 100%);color:#fff;border-radius:var(--r);padding:2.6rem 2rem;
+margin:3rem 0 1rem;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;
+background:radial-gradient(circle,rgba(54,179,126,.16) 0%,transparent 70%);
+top:-180px;right:-90px}
+.cta>*{position:relative;z-index:2}
+.cta h2{color:#fff;margin:0 0 .6rem;font-size:1.45rem;font-weight:800;
+letter-spacing:-.4px}
+.cta p{color:rgba(255,255,255,.75);margin:0 0 1.4rem;font-size:1rem}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:#fff;
+color:var(--primary);padding:.7rem 1.6rem;border-radius:var(--r-sm);font-weight:700;
+font-size:.92rem;box-shadow:0 4px 20px rgba(0,0,0,.15);transition:transform .25s,
+box-shadow .25s;letter-spacing:.01em}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.22);
+text-decoration:none}
+.btn-2{background:rgba(255,255,255,.1);color:#fff;box-shadow:none;
+border:1px solid rgba(255,255,255,.22)}
+.btn-2:hover{background:rgba(255,255,255,.16)}
+
+/* ===== FOOTER ===== */
+footer.site{background:var(--footer);color:rgba(255,255,255,.5);
+padding:2.6rem 0 1.6rem;margin-top:3.5rem}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:1.8rem}
+.foot-brand h4{color:#fff;font-size:1.05rem;margin:0 0 .6rem;display:flex;
+align-items:center;gap:.5rem}
+.foot-brand .mark{width:26px;height:26px;border-radius:7px;display:grid;
+place-items:center;background:linear-gradient(135deg,var(--primary),var(--secondary));
+color:#fff;font-size:.8rem}
+.foot-brand p{font-size:.85rem;line-height:1.65;margin:0}
+.foot-col h5{color:#fff;font-size:.72rem;font-weight:700;text-transform:uppercase;
+letter-spacing:.08em;margin:0 0 .9rem}
+.foot-col a{display:block;color:rgba(255,255,255,.5);font-size:.85rem;
+padding:.22rem 0;transition:color .2s}
+.foot-col a:hover{color:#fff}
+.foot-bottom{margin-top:1.8rem;padding-top:1.3rem;
+border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;
+align-items:center;font-size:.78rem;gap:1rem;flex-wrap:wrap}
+
+.empty{color:var(--muted);padding:2rem 0;font-size:.95rem}
+.sib{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+padding:1.1rem 1.3rem;margin-bottom:.7rem;transition:all .3s}
+.sib:hover{box-shadow:var(--shadow-md);transform:translateX(3px)}
+.sib h3{margin:0 0 .25rem;font-size:1rem}
+.sib h3 a{color:var(--text)}
+.sib h3 a:hover{color:var(--primary)}
+.sib .meta{font-size:.84rem;color:var(--muted)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+.stats{grid-template-columns:repeat(2,1fr)}
+.foot-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:720px){
+nav.site{gap:1rem}
+nav.site a:not(.nav-cta){display:none}
+.wrap{padding:0 1.25rem}
+.grid{grid-template-columns:1fr}
+.foot-grid{grid-template-columns:1fr}
+.foot-bottom{flex-direction:column;text-align:center}
+.hero{padding:3.2rem 0 3rem}
+}
+@media(max-width:480px){
+.stats{grid-template-columns:1fr}
+.btn{width:100%;max-width:290px;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+html{scroll-behavior:auto}
 }
 """.strip()
+
 
 
 def e(value):
@@ -251,7 +410,7 @@ def hours_block(rec, compact=False):
 
     if confidence == "default" and not compact:
         out.append(
-            '<div class="guess"><strong>Typical hours, not confirmed.</strong> '
+            '<div class="notice"><strong>Typical hours, not confirmed.</strong> '
             'These are an estimate for this type of business. If this is your '
             'business, claim the listing to correct them &mdash; wrong opening '
             'hours push you down local results.</div>'
@@ -309,21 +468,48 @@ def tier_badge(rec):
 
 def header_html():
     return f"""<header class="site"><div class="wrap">
-<a class="brand" href="{SITE_URL}/">{e(SITE_NAME)}<span>.</span></a>
+<a class="brand" href="{SITE_URL}/"><span class="mark">SI</span>
+<span>Sandton <b>Index</b></span></a>
 <nav class="site">
 <a href="{SITE_URL}/">Home</a>
 <a href="{SITE_URL}/categories/">Categories</a>
 <a href="{SITE_URL}/zones/">Suburbs</a>
-<a href="{SITE_URL}/needs-a-website/">Get listed free</a>
+<a class="nav-cta" href="{SITE_URL}/needs-a-website/">Get listed free</a>
 </nav></div></header>"""
 
 
 def footer_html():
-    return f"""<footer class="site"><div class="wrap foot">
-<div><strong>{e(SITE_NAME)}</strong><br>
-A directory of businesses across Sandton, Johannesburg.</div>
-<div>Map data &copy; OpenStreetMap contributors.<br>
-Hours shown are indicative &mdash; confirm before travelling.</div>
+    return f"""<footer class="site"><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<h4><span class="mark">SI</span> Sandton Index</h4>
+<p>A directory of businesses across Sandton, Johannesburg &mdash; opening
+hours, directions and contact details, on one map.</p>
+</div>
+<div class="foot-col">
+<h5>Browse</h5>
+<a href="{SITE_URL}/categories/">All categories</a>
+<a href="{SITE_URL}/zones/">All suburbs</a>
+<a href="{SITE_URL}/supermarkets/">Supermarkets</a>
+<a href="{SITE_URL}/restaurants-takeaways/">Restaurants</a>
+</div>
+<div class="foot-col">
+<h5>For business</h5>
+<a href="{SITE_URL}/needs-a-website/">Get a free listing</a>
+<a href="{SITE_URL}/hours-not-published/">Publish your hours</a>
+</div>
+<div class="foot-col">
+<h5>Sandton</h5>
+<a href="{SITE_URL}/zones/sandton-cbd/">Sandton CBD</a>
+<a href="{SITE_URL}/zones/rivonia-strip/">Rivonia</a>
+<a href="{SITE_URL}/zones/illovo/">Illovo</a>
+<a href="{SITE_URL}/zones/sunninghill/">Sunninghill</a>
+</div>
+</div>
+<div class="foot-bottom">
+<span>&copy; 2026 Sandton Index. Map data &copy; OpenStreetMap contributors.</span>
+<span>Hours are indicative &mdash; confirm before travelling.</span>
+</div>
 </div></footer>"""
 
 
@@ -341,6 +527,12 @@ def page(title, description, body, canonical, extra_head=""):
 <meta property="og:description" content="{e(description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{e(canonical)}">
+<meta name="theme-color" content="#0052cc">
+<meta name="geo.region" content="ZA-GT">
+<meta name="geo.placename" content="Sandton, Johannesburg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
 {extra_head}
 <style>{CSS}</style>
 </head>
@@ -367,9 +559,9 @@ def business_card(rec):
                     f'here</a>')
 
     return f"""<article class="card">
+<div class="cat">{e(rec['hub_title'])}</div>
 <h3><a href="{SITE_URL}/{e(rec['path'])}/">{e(rec['name'])}</a></h3>
-<div class="meta">{e(rec['hub_title'])} &middot; {e(rec['zone_display'])}</div>
-<div class="meta">{e(address_text(rec))}</div>
+<div class="meta">{e(rec['zone_display'])} &middot; {e(address_text(rec))}</div>
 <div class="acts">{' '.join(acts)}</div>
 </article>"""
 
@@ -425,22 +617,36 @@ def build_hub_page(hub_slug, zone_key, recs):
 
     facts = []
     if no_site:
-        facts.append(f"{no_site} of these have no website yet")
+        facts.append(f"{no_site} have no website yet")
     if no_hours:
-        facts.append(f"{no_hours} have no published opening hours")
+        facts.append(f"{no_hours} have no published hours")
 
-    body = f"""<div class="hero"><div class="wrap">
+    fact_html = (" " + " and ".join(facts) + ".") if facts else ""
+
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="crumb"><a href="{SITE_URL}/">Home</a> /
 <a href="{SITE_URL}/categories/">Categories</a> / {e(hub['title'])}</div>
-<h1>{e(hub['title'])} in {e(zone_display)}</h1>
-<p>{len(recs)} places near {e(landmark)} with hours, directions and contact
-details. {' Also: ' + ', '.join(facts) + '.' if facts else ''}</p>
+<div class="hero-eyebrow"><span class="dot"></span>
+{len(recs)} listings near {e(landmark)}</div>
+<h1>{e(hub['title'])}<br>in <span class="grad">{e(zone_display)}</span></h1>
+<p>Every {e(hub['singular'])} in {e(zone_display)}, Sandton, with opening
+hours, directions and contact details.{fact_html}</p>
 </div></div>
-<div class="wrap">
+<div class="wrap" style="position:relative;z-index:3">
+<div class="stats">
+<div class="stat"><div class="stat-ico ico-blue">&#127978;</div>
+<b>{len(recs)}</b><span>Listings here</span></div>
+<div class="stat"><div class="stat-ico ico-green">&#128205;</div>
+<b>{sum(1 for r in recs if r.get('phone'))}</b><span>With phone</span></div>
+<div class="stat"><div class="stat-ico ico-teal">&#128337;</div>
+<b>{sum(1 for r in recs if r.get('opening_hours'))}</b><span>Hours listed</span></div>
+<div class="stat"><div class="stat-ico ico-amber">&#9889;</div>
+<b>{no_site}</b><span>No website</span></div>
+</div>
 <h2 class="sec">All {len(recs)} in {e(zone_display)}</h2>
 <div class="grid">{cards}</div>
 <div class="cta">
-<h2>Running a {singular} in {zone_display}?</h2>
+<h2>Running a {e(hub['singular'])} in {e(zone_display)}?</h2>
 <p>Claim your free listing with your real hours, photos and contact details.</p>
 <a class="btn" href="{SITE_URL}/needs-a-website/">Get a free listing</a>
 </div>
@@ -478,14 +684,14 @@ def build_business_page(rec, siblings):
 <h2>Is this your business?</h2>
 <p>You have no website listed. Claim this free page and we will set up your
 details, photos and opening hours properly.</p>
-<a class="btn" href="{SITE_URL}/claim/?b={e(rec['id'])}">Claim this listing</a>
+<a class="btn" href="{SITE_URL}/needs-a-website/?b={e(rec['id'])}">Claim this listing</a>
 </div>"""
     else:
         claim = f"""<div class="cta">
 <h2>Found a mistake in these details?</h2>
 <p>Hours, address or phone out of date? Claim the listing to correct it
 &mdash; accurate details are what local search rewards.</p>
-<a class="btn" href="{SITE_URL}/claim/?b={e(rec['id'])}">Update these details</a>
+<a class="btn" href="{SITE_URL}/needs-a-website/?b={e(rec['id'])}">Update these details</a>
 </div>"""
 
     sib_html = ""
@@ -496,34 +702,38 @@ details, photos and opening hours properly.</p>
 {e(s.get('street_address') or address_text(s))}</div>
 </div>""" for s in siblings)
         label = ("Other branches" if len(siblings) > 1 else "Nearby")
-        sib_html = f"""<h2 class="sec">{label} of {e(rec['name'].split()[0])}</h2>
+        sib_html = f"""<h2 class="sec">{e(label)} of {e(rec['brand_slug'].replace('-', ' '))}</h2>
 {items}"""
 
     hz = hub_zone_url(rec)
     crumb_hub = (f'<a href="{e(hz)}">{e(hub["title"])}</a>' if hz
                  else f'<a href="{SITE_URL}/{e(rec["hub"])}/">{e(hub["title"])}</a>')
 
-    body = f"""<div class="hero"><div class="wrap">
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="crumb"><a href="{SITE_URL}/">Home</a> /
 {crumb_hub} / {e(rec['name'])}</div>
+<div class="hero-eyebrow"><span class="dot"></span>
+{e(rec['hub_title'])} &middot; {e(rec['zone_display'])}</div>
 <h1>{e(rec['name'])}</h1>
-<p>{e(hub['singular'].capitalize())} in {e(rec['zone_display'])}.
-{e(address_text(rec))}</p>
+<p>{e(address_text(rec))}, Sandton, Johannesburg.</p>
 </div></div>
-<div class="wrap">
-<p style="margin:18px 0">{tier_badge(rec)}</p>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<div style="margin-bottom:1.4rem">{tier_badge(rec)}</div>
 <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
 <div>
+<h2 class="sec">Details</h2>
 <p><strong>Address</strong><br>{e(address_text(rec))}<br>Sandton,
 {('2196' if rec.get('postcode') else 'Johannesburg, Gauteng')}, South Africa</p>
 <p><strong>Contact</strong><br>{contact}</p>
+<h2 class="sec">Opening hours</h2>
 {hours_block(rec)}
 </div>
 <div>
+<h2 class="sec">Find it</h2>
 <iframe class="map" title="Map showing {e(rec['name'])}"
 src="{maps_embed_url(rec)}" loading="lazy"
 referrerpolicy="no-referrer-when-downgrade"></iframe>
-<p style="font-size:13.5px;color:var(--mut);margin-top:9px">
+<p style="font-size:.85rem;color:var(--muted);margin-top:.9rem">
 <a href="{maps_link(rec)}" target="_blank" rel="noopener">Open in Google
 Maps</a> &mdash; add or correct this listing there too. It is where most people
 actually look for a business.</p>
@@ -544,27 +754,48 @@ def build_home(records, hubs_by_zone):
     zones = sorted(hubs_by_zone.keys())
 
     zone_cards = "".join(f"""<article class="card">
-<h3><a href="{SITE_URL}/zones/">{e(z)}</a></h3>
-<div class="meta">{sum(len(v) for k, v in hubs_by_zone.items() if k == z)}
-businesses listed</div></article>""" for z in zones)
+<div class="cat">{len(hubs_by_zone[z])} businesses</div>
+<h3><a href="{SITE_URL}/zones/{e(z)}/">{e(z.replace('-', ' ').title())}</a></h3>
+<div class="acts"><a href="{SITE_URL}/zones/{e(z)}/">Browse &rarr;</a></div>
+</article>""" for z in zones)
 
     title = f"{SITE_NAME} | Every business in Sandton, Johannesburg"
     desc = SITE_DESCRIPTION
-    body = f"""<div class="hero"><div class="wrap">
-<h1>Every business in Sandton, on one map.</h1>
-<p>{total} businesses across {len(zones)} suburbs of Sandton, Johannesburg
-&mdash; with opening hours, directions and contact details. {no_site} of them
-have no website yet and can claim a free page here.</p>
+    cat_cards = "".join(
+        f"""<article class="card">
+<div class="cat">{sum(1 for r in records if r['hub'] == h['slug'])} listings</div>
+<h3><a href="{SITE_URL}/{h['slug']}/">{e(h['title'])}</a></h3>
+<div class="meta">{e(h['singular'].capitalize())} across Sandton</div>
+<div class="acts"><a href="{SITE_URL}/{h['slug']}/">Browse &rarr;</a></div>
+</article>""" for h in HUB_BY_SLUG.values()
+        if any(r['hub'] == h['slug'] for r in records))
+
+    with_phone = sum(1 for r in records if r.get('phone'))
+    with_hours = sum(1 for r in records if r.get('opening_hours'))
+
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> Sandton, Johannesburg</div>
+<h1>Every business in Sandton,<br><span class="grad">on one map</span></h1>
+<p>{total} businesses across {len(zones)} suburbs &mdash; opening hours,
+directions and contact details. {no_site} have no website yet and can claim a
+free page here.</p>
 </div></div>
-<div class="wrap">
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<div class="stats">
+<div class="stat"><div class="stat-ico ico-blue">&#127978;</div>
+<b>{total}</b><span>Businesses</span></div>
+<div class="stat"><div class="stat-ico ico-teal">&#128337;</div>
+<b>{with_hours}</b><span>Hours listed</span></div>
+<div class="stat"><div class="stat-ico ico-green">&#128222;</div>
+<b>{with_phone}</b><span>With phone</span></div>
+<div class="stat"><div class="stat-ico ico-amber">&#9889;</div>
+<b>{no_site}</b><span>No website</span></div>
+</div>
 <h2 class="sec">Browse by suburb</h2>
 <div class="grid">{zone_cards}</div>
 <h2 class="sec">Browse by category</h2>
 <div class="grid">
-{''.join(f'''<article class="card"><h3><a href="{SITE_URL}/{h['slug']}/">{e(h['title'])}</a></h3>
-<div class="meta">{sum(1 for r in records if r['hub'] == h['slug'])} listings
-across Sandton</div></article>''' for h in HUB_BY_SLUG.values()
- if any(r['hub'] == h['slug'] for r in records))}
+{cat_cards}
 </div>
 <div class="cta">
 <h2>No website? Get a free listing.</h2>
@@ -580,15 +811,22 @@ def build_categories_index(records):
     for r in records:
         counts[r["hub"]] += 1
     cards = "".join(f"""<article class="card">
+<div class="cat">{counts.get(h['slug'], 0)} listings</div>
 <h3><a href="{SITE_URL}/{h['slug']}/">{e(h['title'])}</a></h3>
-<div class="meta">{counts.get(h['slug'], 0)} listings across Sandton</div>
+<div class="meta">{e(h['singular'].capitalize())} across Sandton</div>
+<div class="acts"><a href="{SITE_URL}/{h['slug']}/">Browse &rarr;</a></div>
 </article>""" for h in HUB_BY_SLUG.values() if counts.get(h["slug"], 0))
 
-    body = f"""<div class="hero"><div class="wrap">
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span>
+{sum(counts.values())} listings</div>
 <h1>Categories</h1>
-<p>Every category of business listed in the Sandton Index.</p>
+<p>Every category of business listed in the Sandton Index. Pick a category,
+then a suburb.</p>
 </div></div>
-<div class="wrap"><div class="grid">{cards}</div></div>"""
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">All categories</h2>
+<div class="grid">{cards}</div></div>"""
     write(os.path.join("categories", "index.html"),
           page(f"Categories | {SITE_NAME}",
                "Browse Sandton businesses by category.", body,
@@ -600,20 +838,27 @@ def build_hub_index(hub, zones, records):
     # is below MIN_HUB_LISTINGS has no page to link to, and linking to a
     # non-existent near-me page would be a dead end for both crawler and user.
     cards = "".join(f"""<article class="card">
+<div class="cat">{n} listings</div>
 <h3><a href="{SITE_URL}/{e(hub['slug'])}/{e(z)}/">{e(label)}</a></h3>
-<div class="meta">{n} listings</div></article>"""
+<div class="meta">{e(hub['singular'].capitalize())} in {e(label)}</div>
+<div class="acts"><a href="{SITE_URL}/{e(hub['slug'])}/{e(z)}/">Browse &rarr;</a></div>
+</article>"""
                     for z, label, n in zones if n >= MIN_HUB_LISTINGS)
     if not cards:
         cards = ('<p class="empty">No suburb has enough listings yet for its '
                  'own page. Browse all listings by suburb instead.</p>')
 
-    body = f"""<div class="hero"><div class="wrap">
+    total = sum(c for _z, _l, c in zones)
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="crumb"><a href="{SITE_URL}/">Home</a> /
 <a href="{SITE_URL}/categories/">Categories</a></div>
+<div class="hero-eyebrow"><span class="dot"></span> {total} listings in Sandton</div>
 <h1>{e(hub['title'])}</h1>
 <p>Pick your suburb to see {e(hub['singular'])} options near you.</p>
 </div></div>
-<div class="wrap"><div class="grid">{cards}</div></div>"""
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">Choose a suburb</h2>
+<div class="grid">{cards}</div></div>"""
     write(os.path.join(hub["slug"], "index.html"),
           page(f"{hub['title']} in Sandton | {SITE_NAME}",
                f"{hub['title']} across Sandton, Johannesburg.", body,
@@ -637,13 +882,15 @@ text-transform:none;letter-spacing:0">({len(by_hub[hub_slug])})</span></h2>
 text-transform:none;letter-spacing:0">({len(by_hub[hub_slug])})</span></h2>
 <div class="grid">{''.join(business_card(r) for r in by_hub[hub_slug])}</div>""")
         for hub_slug in sorted(by_hub, key=lambda s: -len(by_hub[s])))
-    body = f"""<div class="hero"><div class="wrap">
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="crumb"><a href="{SITE_URL}/">Home</a> /
 <a href="{SITE_URL}/zones/">Suburbs</a></div>
+<div class="hero-eyebrow"><span class="dot"></span> {len(recs)} businesses</div>
 <h1>{e(label)}</h1>
-<p>{len(recs)} businesses listed in {e(label)}, Sandton.</p>
+<p>Every listed business in {e(label)}, Sandton, grouped by category.</p>
 </div></div>
-<div class="wrap">{groups}</div>"""
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+{groups}</div>"""
     write(os.path.join("zones", zone_key, "index.html"),
           page(f"{label} businesses | {SITE_NAME}",
                f"Every listed business in {label}, Sandton, Johannesburg.",
@@ -652,45 +899,64 @@ text-transform:none;letter-spacing:0">({len(by_hub[hub_slug])})</span></h2>
 
 def build_zone_index_page(all_zones):
     cards = "".join(f"""<article class="card">
+<div class="cat">{n} businesses</div>
 <h3><a href="{SITE_URL}/zones/{e(z)}/">{e(label)}</a></h3>
-<div class="meta">{n} businesses listed</div></article>"""
+<div class="acts"><a href="{SITE_URL}/zones/{e(z)}/">Browse &rarr;</a></div>
+</article>"""
                     for z, label, n in all_zones)
-    body = f"""<div class="hero"><div class="wrap">
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span>
+{sum(c for _z, _l, c in all_zones)} businesses</div>
 <h1>Sandton suburbs</h1>
 <p>Browse the index by area.</p>
 </div></div>
-<div class="wrap"><div class="grid">{cards}</div></div>"""
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<div class="grid">{cards}</div></div>"""
     write(os.path.join("zones", "index.html"),
           page(f"Suburbs | {SITE_NAME}",
                "Browse the Sandton Index by suburb.", body,
                f"{SITE_URL}/zones/"))
 
 
-def build_landing(records, slug, heading, blurb, cta_label, extra=""):
+def build_landing(records, slug, heading, blurb, cta_label, rows=()):
     tier_a = [r for r in records if r["tier"] == "A"]
     if slug == "needs-a-website":
-        body = f"""<div class="hero"><div class="wrap">
-<h1>Get a free page for your Sandton business</h1>
-<p>{blurb}</p>
+        extra_rows = "".join(
+            f"""<div class="sib">
+<h3><a href="{SITE_URL}/{e(r['path'])}/">{e(r['name'])}</a></h3>
+<div class="meta">{e(r['hub_title'])} &middot; {e(r['zone_display'])}</div>
+</div>""" for r in rows)
+        body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> Free, no obligation</div>
+<h1>Get a free page for<br><span class="grad">your Sandton business</span></h1>
+<p>{e(blurb)}</p>
 </div></div>
-<div class="wrap">
-<div class="cta" style="background:var(--card);border:1px solid var(--line);
-color:var(--ink)">
-<h2 style="color:var(--ink)">{len(tier_a)} Sandton businesses have no
-website yet</h2>
-<p style="color:var(--mut)">If that is you, a basic page with your hours, map,
-phone and directions costs you nothing. It is the minimum for showing up when
-someone searches for what you do.</p>
-<a class="btn" href="mailto:hello@{SITE_URL.split('//')[1]}?subject=Claim%20my%20Sandton%20listing">{cta_label}</a>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<div class="cta" style="margin-top:0">
+<h2>{len(tier_a)} Sandton businesses have no website yet</h2>
+<p>If that is you, a page with your hours, map, phone and directions costs you
+nothing. It is the minimum for showing up when someone searches for what you
+do.</p>
+<a class="btn" href="mailto:hello@{SITE_URL.split('//')[1]}?subject=Claim%20my%20Sandton%20listing">{e(cta_label)}</a>
 </div>
-{extra}
+<h2 class="sec">Businesses looking for a page</h2>
+{extra_rows}
 </div>"""
     else:
-        body = f"""<div class="hero"><div class="wrap">
+        extra_rows = "".join(
+            f"""<div class="sib">
+<h3><a href="{SITE_URL}/{e(r['path'])}/">{e(r['name'])}</a></h3>
+<div class="meta">{e(r['hub_title'])} &middot; {e(r['zone_display'])}</div>
+</div>""" for r in rows)
+        body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> Opening hours matter</div>
 <h1>{e(heading)}</h1>
 <p>{e(blurb)}</p>
 </div></div>
-<div class="wrap">{extra}</div>"""
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">Listings missing hours</h2>
+{extra_rows}
+</div>"""
     write(os.path.join(slug, "index.html"),
           page(f"{heading} | {SITE_NAME}", blurb, body, f"{SITE_URL}/{slug}/"))
 
@@ -793,11 +1059,7 @@ def main():
         records, "needs-a-website", "Free listings",
         "A free page for your business: hours, map, phone and directions.",
         "Email us to claim your page",
-        extra="".join(
-            f"""<div class="sib"><h3><a href="{SITE_URL}/{e(r['path'])}/">
-{e(r['name'])}</a></h3><div class="meta">{e(r['zone_display'])} &middot;
-{e(r['hub_title'])}</div></div>"""
-            for r in sorted(unreviewed, key=lambda x: x["name"])[:60]))
+        rows=sorted(unreviewed, key=lambda x: x["name"])[:60])
 
     build_landing(
         records, "hours-not-published",
@@ -805,11 +1067,7 @@ def main():
         "Being open when someone searches is now a confirmed local ranking "
         "factor. These listings have no hours yet.",
         "Add your hours",
-        extra="".join(
-            f"""<div class="sib"><h3><a href="{SITE_URL}/{e(r['path'])}/">
-{e(r['name'])}</a></h3><div class="meta">{e(r['zone_display'])} &middot;
-{e(r['hub_title'])}</div></div>"""
-            for r in sorted(no_hours, key=lambda x: x["name"])[:60]))
+        rows=sorted(no_hours, key=lambda x: x["name"])[:60])
 
     print(f"  landings       : 2 (needs-a-website, hours-not-published)")
 
@@ -817,9 +1075,12 @@ def main():
     write("404.html", page(
         "Page not found | Sandton Index",
         "That page does not exist.",
-        '<div class="hero"><div class="wrap"><h1>Page not found</h1>'
-        '<p>Try the <a href="/">homepage</a> or browse '
-        '<a href="/categories/">by category</a>.</p></div></div>',
+        f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> 404</div>
+<h1>Page not found</h1>
+<p>That page is not in the index. Try the <a href="{SITE_URL}/">homepage</a>
+or browse <a href="{SITE_URL}/categories/">by category</a>.</p>
+</div></div>""",
         f"{SITE_URL}/404.html"))
 
     for base in (SITE,):

@@ -80,16 +80,46 @@ Subdirectory URLs only -- one repo, one build, no per-client DNS.
 
 ## Publishing
 
-Set the `SANDTON_SITE_URL` repository variable to the serving URL. Internal
-links are absolute, so it must match reality.
+`SITE_URL` must match where the site actually resolves. Every internal link,
+canonical tag and sitemap entry is absolute, so a wrong value turns the whole
+site into dead redirects.
+
+**Default:** `https://skywalkingzulu1.github.io/sandton-index` — the GitHub
+Pages project URL, the only host this is known to serve on.
+
+`sandtonindex.co.za` was the original default and is **not a registered
+domain**; it made every internal link a dead redirect, so it is no longer
+referenced anywhere in the output.
+
+To publish on a real domain, set the `SANDTON_SITE_URL` repository variable
+(the deploy workflow reads it) or override per build:
 
 ```bash
-SANDTON_SITE_URL=https://example.com python scripts/09_build_sites.py
+SANDTON_SITE_URL=https://yourdomain.co.za python scripts/09_build_sites.py
 ```
 
 `.github/workflows/deploy.yml` builds and deploys to GitHub Pages on push to
 `main`. It runs `verify_build.py` before publishing and fails the deploy if
 any check trips.
+
+## Design
+
+The visual language is taken from [docsonwheels.co.za](https://docsonwheels.co.za)
+so the index reads as part of the same family:
+
+| Token | Value | Use |
+|---|---|---|
+| `--primary` | `#0052cc` | Links, brand, structure |
+| `--primary-darker` | `#052d6e` | Gradient hero / CTA |
+| `--secondary` | `#00a3bf` | Gradient accent, informational |
+| `--accent` | `#36b37e` | "Open / confirmed / no website yet" |
+| `--text` / `--muted` | `#1e293b` / `#64748b` | Copy hierarchy |
+| `--border` | `#e2e8f0` | Card and divider lines |
+
+Inter (400–900), 16px cards, 12px buttons, a 135° gradient hero with dot grid
+and drifting radial blobs, and stat cards that overlap the hero edge. The
+amber "typical hours" notice deliberately breaks the blue/green family so an
+unverified claim never looks like a verified one.
 
 ## Data quality
 

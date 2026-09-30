@@ -23,21 +23,47 @@ SITE_NAME = "Sandton Index"
 # Base URL for canonical tags, sitemap entries and internal links.
 #
 # Every internal link is absolute, so this must match where the site is
-# actually served. Override it at build time when publishing somewhere other
-# than the custom domain -- e.g. a GitHub Pages project URL:
+# actually served. The default points at the GitHub Pages project URL, which
+# is the only host this is known to resolve on -- sandtonindex.co.za was never
+# registered, and defaulting to it made every internal link a dead redirect.
 #
-#   SANDTON_SITE_URL=https://skywalkingzulu1.github.io/sandton-index python scripts/09_build_sites.py
+# Override it once a real domain is live, either via the environment:
 #
-# It is read from the environment rather than hardcoded so the same repo can
-# be deployed to a preview host without editing source.
+#   SANDTON_SITE_URL=https://sandtonindex.co.za python scripts/09_build_sites.py
+#
+# or by setting the SANDTON_SITE_URL repository variable, which the deploy
+# workflow reads.
 SITE_URL = os.environ.get(
-    "SANDTON_SITE_URL", "https://sandtonindex.co.za"
+    "SANDTON_SITE_URL", "https://skywalkingzulu1.github.io/sandton-index"
 ).rstrip("/")
 
 SITE_DESCRIPTION = (
     "Every business in Sandton, Johannesburg, on one map. "
     "Opening hours, directions and contact details for shops, services and offices."
 )
+
+# Design tokens, taken from docsonwheels.co.za so the index reads as part of
+# the same family. Blue carries structure, teal marks informational blocks and
+# green marks the "good / open / confirmed" states.
+PALETTE = {
+    "primary": "#0052cc",
+    "primary_dark": "#0747a6",
+    "primary_darker": "#052d6e",
+    "secondary": "#00a3bf",
+    "accent": "#36b37e",
+    "accent_dark": "#2a8f63",
+    "text": "#1e293b",
+    "muted": "#64748b",
+    "border": "#e2e8f0",
+    "light": "#f8fafc",
+    "footer": "#0f172a",
+    # Tier + state tints
+    "tint_blue": "#eef4ff",
+    "tint_green": "#e3fcef",
+    "tint_teal": "#e6fcff",
+    "tint_amber": "#fff8e1",
+    "amber": "#f59e0b",
+}
 
 # --------------------------------------------------------------------------
 # 1. HUB GROUPS
