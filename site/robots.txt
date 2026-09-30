@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://skywalkingzulu1.github.io/sandton-index/sitemap.xml
