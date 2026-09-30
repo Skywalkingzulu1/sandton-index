@@ -963,11 +963,25 @@ do.</p>
 
 # ---------------------------------------------------------------- sitemap
 def build_sitemap(paths):
-    urls = "".join(f"<url><loc>{e(SITE_URL)}/{p}</loc></url>"
-                   for p in paths if p != "index.html")
+    """Emit clean directory URLs.
+
+    Pages are written as <dir>/index.html, but every canonical tag and
+    internal link uses the directory form, so the sitemap must match.
+    Listing /shop/index.html alongside a canonical of /shop/ asks a search
+    engine to treat two URLs as one page, which is exactly the duplicate
+    this index must avoid.
+    """
+    urls = []
+    for p in paths:
+        if p == "index.html":
+            urls.append(f"{SITE_URL}/")
+            continue
+        clean = p[:-len("index.html")] if p.endswith("index.html") else p
+        urls.append(f"{SITE_URL}/{clean}")
+    body = "".join(f"<url><loc>{e(u)}</loc></url>" for u in sorted(set(urls)))
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           f"{urls}\n</urlset>\n")
+           f"{body}\n</urlset>\n")
     os.makedirs(SITE, exist_ok=True)
     with open(os.path.join(SITE, "sitemap.xml"), "w", encoding="utf-8") as fh:
         fh.write(xml)
