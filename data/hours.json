@@ -1272,7 +1272,7 @@
   },
   "b37c3cc7-0508-42e7-998a-0cbbeee3759f": {
     "days": {
-      "monday": "05:00-21:30",
+      "monday": "06:00-20:00",
       "tuesday": "05:00-21:30",
       "wednesday": "05:00-21:30",
       "thursday": "05:00-21:30",
@@ -1281,7 +1281,7 @@
       "sunday": "06:00-20:00"
     },
     "confidence": "scraped",
-    "source": "openstreetmap (Virgin Active): Mo-Th 05:00-21:30; Fr 05:00-21:00; Sa-Su 06:00-20:00"
+    "source": "openstreetmap (Virgin Active): Mo 06:00-20:00; Tu-Th 05:00-21:30; Fr 05:00-21:00; Sa-Su 06:00-20:00"
   },
   "127db25c-22c8-4b16-b501-09dee85a8903": {
     "days": null,
@@ -1474,15 +1474,16 @@
   },
   "b6e46cdf-3754-45d7-b45a-b8d7068e09ad": {
     "days": {
-      "monday": "09:00-21:00",
-      "tuesday": "09:00-21:00",
-      "wednesday": "09:00-21:00",
-      "thursday": "09:00-21:00",
-      "friday": "09:00-21:00",
-      "saturday": "09:00-17:00"
+      "monday": "06:00-18:00",
+      "tuesday": "06:00-18:00",
+      "wednesday": "06:00-18:00",
+      "thursday": "06:00-18:00",
+      "friday": "06:00-18:00",
+      "saturday": "07:00-16:00",
+      "sunday": "07:00-14:00"
     },
-    "confidence": "default",
-    "source": "typical restaurants & takeaways hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Fournos Bakery): Mo-Fr 06:00-18:00; Sa 07:00-16:00; Su 07:00-14:00"
   },
   "2a8d5155-828b-4160-a045-2895693b2b7a": {
     "days": {
@@ -1723,11 +1724,11 @@
       "tuesday": "05:00-21:00",
       "wednesday": "05:00-21:00",
       "thursday": "05:00-21:00",
-      "friday": "05:00-21:00",
+      "friday": "05:00-20:00",
       "saturday": "06:00-19:00"
     },
     "confidence": "scraped",
-    "source": "openstreetmap (Virgin Active): Mo-Fr 05:00-21:00; Sa 06:00-19:00; Su off"
+    "source": "openstreetmap (Virgin Active): Mo-Th 05:00-21:00; Fr 05:00-20:00; Sa 06:00-19:00; Su off"
   },
   "195167da-c513-48c8-adfe-6ce36d4034bd": {
     "days": {
@@ -1742,15 +1743,14 @@
   },
   "270070cc-44dd-4510-9714-971c606881d5": {
     "days": {
-      "monday": "08:30-17:00",
-      "tuesday": "08:30-17:00",
-      "wednesday": "08:30-17:00",
-      "thursday": "08:30-17:00",
-      "friday": "08:30-17:00",
-      "saturday": "08:30-17:00"
+      "monday": "08:00-17:00",
+      "tuesday": "08:00-17:00",
+      "wednesday": "08:00-17:00",
+      "thursday": "08:00-17:00",
+      "friday": "08:00-16:30"
     },
-    "confidence": "default",
-    "source": "typical professional & business services hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Thomson Wilks): Mo-Th 08:00-17:00; Fr 08:00-16:30"
   },
   "39efef09-b6a1-4e46-9681-060cb2ec17da": {
     "days": {
@@ -1766,15 +1766,16 @@
   },
   "eb9bb626-9431-4702-b593-29d559791bee": {
     "days": {
-      "monday": "05:30-21:00",
-      "tuesday": "05:30-21:00",
-      "wednesday": "05:30-21:00",
-      "thursday": "05:30-21:00",
-      "friday": "05:30-21:00",
-      "saturday": "05:30-17:00"
+      "monday": "05:00-21:00",
+      "tuesday": "05:00-21:00",
+      "wednesday": "05:00-21:00",
+      "thursday": "05:00-21:00",
+      "friday": "05:00-20:00",
+      "saturday": "07:00-16:00",
+      "sunday": "07:00-14:00"
     },
-    "confidence": "default",
-    "source": "typical fitness, sport & recreation hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Planet Fitness): Mo-Th 05:00-21:00; Fr 05:00-20:00; Sa 07:00-16:00; Su 07:00-14:00"
   },
   "cde2d20c-17bb-4bcb-b05b-5a3dfb05abad": {
     "days": {
@@ -1790,15 +1791,15 @@
   },
   "d4e15002-df58-48a3-822a-a1fed2b419a2": {
     "days": {
-      "monday": "09:00-18:00",
-      "tuesday": "09:00-18:00",
-      "wednesday": "09:00-18:00",
-      "thursday": "09:00-18:00",
-      "friday": "09:00-18:00",
-      "saturday": "09:00-17:00"
+      "tuesday": "10:00-18:00",
+      "wednesday": "10:00-18:00",
+      "thursday": "10:00-18:00",
+      "friday": "10:00-18:00",
+      "saturday": "10:00-18:00",
+      "sunday": "10:00-18:00"
     },
-    "confidence": "default",
-    "source": "typical home, furniture & décor hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Artjamming): Tu-Su 10:00-18:00"
   },
   "e6de0310-a751-488d-a9cb-d4d048a7367c": {
     "days": {
@@ -2494,7 +2495,7 @@
   },
   "8c5c713e-ebc3-41d2-a9d5-da03e3a40e9f": {
     "days": {
-      "monday": "05:00-21:30",
+      "monday": "06:00-20:00",
       "tuesday": "05:00-21:30",
       "wednesday": "05:00-21:30",
       "thursday": "05:00-21:30",
@@ -2503,7 +2504,7 @@
       "sunday": "06:00-20:00"
     },
     "confidence": "scraped",
-    "source": "openstreetmap (Virgin Active): Mo-Th 05:00-21:30; Fr 05:00-21:00; Sa-Su 06:00-20:00"
+    "source": "openstreetmap (Virgin Active): Mo 06:00-20:00; Tu-Th 05:00-21:30; Fr 05:00-21:00; Sa-Su 06:00-20:00"
   },
   "a090df2e-22cb-4a8e-aa57-41173af8299c": {
     "days": {
@@ -3253,17 +3254,16 @@
   },
   "079a14b5-cede-4871-8243-e57f6a34c901": {
     "days": {
-      "monday": "08:00-17:00",
-      "tuesday": "08:00-17:00",
-      "wednesday": "08:00-17:00",
-      "thursday": "08:00-17:00",
-      "friday": "08:00-17:00",
-      "saturday": "08:00-17:00",
-      "sunday": "09:00-14:00",
-      "public_holiday": "09:00-14:00"
+      "sunday": "09:00-15:00",
+      "public_holiday": "09:00-15:00",
+      "wednesday": "09:00-18:00",
+      "monday": "08:00-18:00",
+      "tuesday": "08:00-18:00",
+      "thursday": "08:00-18:00",
+      "friday": "08:00-18:00"
     },
     "confidence": "scraped",
-    "source": "openstreetmap (Absolute Pets): Mo-Sa 08:00-17:00; Su 09:00-14:00; PH 09:00-14:00"
+    "source": "openstreetmap (Absolute Pets): Su 09:00-15:00; PH 09:00-15:00; We 09:00-18:00; Mo,Tu,Th,Fr 08:00-18:00"
   },
   "cc43ffdd-3616-413b-8abd-5c28e737065b": {
     "days": {
@@ -3691,15 +3691,16 @@
   },
   "c95d0711-4645-4f6b-8be9-507137ee27f5": {
     "days": {
-      "monday": "07:00-21:00",
-      "tuesday": "07:00-21:00",
-      "wednesday": "07:00-21:00",
-      "thursday": "07:00-21:00",
-      "friday": "07:00-21:00",
-      "saturday": "07:00-17:00"
+      "monday": "09:00-19:00",
+      "tuesday": "09:00-19:00",
+      "wednesday": "09:00-19:00",
+      "thursday": "09:00-19:00",
+      "friday": "09:00-19:00",
+      "saturday": "09:00-19:00",
+      "sunday": "09:00-18:00"
     },
-    "confidence": "default",
-    "source": "typical supermarkets & grocers hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (New Little India): Mo-Sa 09:00-19:00; Su 09:00-18:00"
   },
   "e729e429-0fcb-4191-817b-8a11ed4a832d": {
     "days": null,
@@ -5026,15 +5027,15 @@
   },
   "1a0064ab-ad52-4faf-a893-a7d9ff874603": {
     "days": {
-      "monday": "08:00-17:00",
-      "tuesday": "08:00-17:00",
-      "wednesday": "08:00-17:00",
-      "thursday": "08:00-17:00",
-      "friday": "08:00-17:00",
-      "saturday": "08:00-17:00"
+      "monday": "07:30-17:00",
+      "tuesday": "07:30-17:00",
+      "wednesday": "07:30-17:00",
+      "thursday": "07:30-17:00",
+      "friday": "07:30-17:00",
+      "saturday": "09:00-13:00"
     },
-    "confidence": "default",
-    "source": "typical automotive hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Dunkeld Cycles): Mo-Fr 07:30-17:00; Sa 09:00-13:00"
   },
   "43860d10-b7df-4cba-ac47-63f4d6a49068": {
     "days": {
@@ -5224,51 +5225,54 @@
   },
   "e37ba835-5100-4bd1-b378-637855544748": {
     "days": {
-      "monday": "08:30-17:00",
-      "tuesday": "08:30-17:00",
-      "wednesday": "08:30-17:00",
-      "thursday": "08:30-17:00",
-      "friday": "08:30-17:00",
-      "saturday": "08:30-17:00"
+      "monday": "08:00-17:00",
+      "tuesday": "08:00-17:00",
+      "wednesday": "08:00-17:00",
+      "thursday": "08:00-17:00",
+      "friday": "08:00-17:00"
     },
-    "confidence": "default",
-    "source": "typical professional & business services hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (PSG Wealth Hyde Park): Mo-Fr 08:00-17:00"
   },
   "22932cf0-10e2-4aa5-9282-3f530d7bd822": {
     "days": {
-      "monday": "09:00-18:00",
-      "tuesday": "09:00-18:00",
-      "wednesday": "09:00-18:00",
-      "thursday": "09:00-18:00",
-      "friday": "09:00-18:00",
-      "saturday": "09:00-17:00"
+      "monday": "09:00-16:30",
+      "tuesday": "09:00-16:30",
+      "wednesday": "09:00-16:30",
+      "thursday": "09:00-16:30",
+      "friday": "09:00-16:30",
+      "saturday": "09:00-14:00"
     },
-    "confidence": "default",
-    "source": "typical home, furniture & décor hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Ardmore): Mo-Fr 09:00-16:30; Sa 09:00-14:00"
   },
   "6ab55b26-41b8-467b-bc3e-ebda56fa26b7": {
     "days": {
-      "monday": "09:00-18:00",
-      "tuesday": "09:00-18:00",
-      "wednesday": "09:00-18:00",
-      "thursday": "09:00-18:00",
-      "friday": "09:00-18:00",
-      "saturday": "09:00-17:00"
+      "monday": "08:30-17:30",
+      "tuesday": "08:30-17:30",
+      "wednesday": "08:30-17:30",
+      "thursday": "08:30-17:30",
+      "friday": "08:30-17:30",
+      "saturday": "08:30-15:00",
+      "sunday": "09:00-14:00",
+      "public_holiday": "09:00-14:00"
     },
-    "confidence": "default",
-    "source": "typical home, furniture & décor hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (The Bed Centre): Mo-Fr 08:30-17:30; Sa 08:30-15:00; Su,PH 09:00-14:00"
   },
   "fa74aa2b-bca1-4ec0-ad8a-a9f92c954563": {
     "days": {
-      "monday": "07:00-21:00",
-      "tuesday": "07:00-21:00",
-      "wednesday": "07:00-21:00",
-      "thursday": "07:00-21:00",
-      "friday": "07:00-21:00",
-      "saturday": "07:00-17:00"
+      "monday": "07:30-18:00",
+      "tuesday": "07:30-18:00",
+      "wednesday": "07:30-18:00",
+      "thursday": "07:30-18:00",
+      "friday": "07:30-18:00",
+      "saturday": "07:30-16:00",
+      "sunday": "07:30-14:00",
+      "public_holiday": "07:30-14:00"
     },
-    "confidence": "default",
-    "source": "typical supermarkets & grocers hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Dunkeld Fruit & Flowers): Mo-Fr 07:30-18:00; Sa 07:30-16:00; Su,PH 07:30-14:00"
   },
   "2cf93fd9-e95c-47b7-a5bd-5b0d19af69e9": {
     "days": {
@@ -5646,15 +5650,16 @@
   },
   "2c05a79b-9652-4153-a5d8-da7ab3ab8662": {
     "days": {
-      "monday": "05:30-21:00",
-      "tuesday": "05:30-21:00",
-      "wednesday": "05:30-21:00",
-      "thursday": "05:30-21:00",
-      "friday": "05:30-21:00",
-      "saturday": "05:30-17:00"
+      "monday": "05:00-21:00",
+      "tuesday": "05:00-21:00",
+      "wednesday": "05:00-21:00",
+      "thursday": "05:00-21:00",
+      "friday": "05:00-20:00",
+      "saturday": "07:00-18:00",
+      "sunday": "07:00-16:00"
     },
-    "confidence": "default",
-    "source": "typical fitness, sport & recreation hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Planet Fitness): Mo-Th 05:00-21:00; Fr 05:00-20:00; Sa 07:00-18:00; Su 07:00-16:00"
   },
   "9c026315-51db-455c-8422-e21035da798a": {
     "days": {
@@ -5734,15 +5739,17 @@
   },
   "bba7fca2-557e-400c-8c6c-1194cc5790d4": {
     "days": {
-      "monday": "07:00-21:00",
-      "tuesday": "07:00-21:00",
-      "wednesday": "07:00-21:00",
-      "thursday": "07:00-21:00",
-      "friday": "07:00-21:00",
-      "saturday": "07:00-17:00"
+      "monday": "07:30-17:00",
+      "tuesday": "07:30-17:00",
+      "wednesday": "07:30-17:00",
+      "thursday": "07:30-17:00",
+      "friday": "07:30-17:00",
+      "saturday": "07:00-17:00",
+      "sunday": "07:00-15:00",
+      "public_holiday": "07:30-16:00"
     },
-    "confidence": "default",
-    "source": "typical supermarkets & grocers hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Fresh Earth Food Store): Mo-Fr 07:30-17:00; Sa 07:00-17:00; Su 07:00-15:00; PH 07:30-16:00"
   },
   "b81d899b-457b-4ccf-9d54-232905503982": {
     "days": {
@@ -5758,15 +5765,16 @@
   },
   "068aa7cb-331b-4fe2-adda-94efb1405993": {
     "days": {
-      "monday": "08:30-17:30",
-      "tuesday": "08:30-17:30",
-      "wednesday": "08:30-17:30",
-      "thursday": "08:30-17:30",
-      "friday": "08:30-17:30",
-      "saturday": "08:30-17:00"
+      "monday": "09:00-18:00",
+      "tuesday": "09:00-18:00",
+      "wednesday": "09:00-18:00",
+      "thursday": "09:00-18:00",
+      "friday": "09:00-18:00",
+      "saturday": "09:00-14:00",
+      "sunday": "09:00-12:30"
     },
-    "confidence": "default",
-    "source": "typical pets & animals hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Pepper & Co): Mo-Fr 09:00-18:00; Sa 09:00-14:00; Su 09:00-12:30"
   },
   "45e160bf-6264-4f9b-b171-58b9091edb67": {
     "days": {
@@ -5794,27 +5802,26 @@
   },
   "1d058d9b-8c3c-495c-b771-b8117ca113d7": {
     "days": {
-      "monday": "08:30-17:00",
-      "tuesday": "08:30-17:00",
-      "wednesday": "08:30-17:00",
-      "thursday": "08:30-17:00",
-      "friday": "08:30-17:00",
-      "saturday": "08:30-17:00"
+      "tuesday": "10:00-17:00",
+      "wednesday": "10:00-17:00",
+      "friday": "10:00-17:00",
+      "thursday": "12:00-17:00",
+      "saturday": "09:00-14:00",
+      "public_holiday": "09:00-13:00"
     },
-    "confidence": "default",
-    "source": "typical media, printing & stationery hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Vinyl Junkie): Mo,Su off; Tu-We,Fr 10:00-17:00; Th 12:00-17:00; Sa 09:00-14:00; PH 09:00-13:00"
   },
   "3b9b9f86-bccf-4e3b-af17-8e97beb57d97": {
     "days": {
-      "monday": "09:00-18:00",
-      "tuesday": "09:00-18:00",
-      "wednesday": "09:00-18:00",
-      "thursday": "09:00-18:00",
-      "friday": "09:00-18:00",
-      "saturday": "09:00-17:00"
+      "tuesday": "08:30-16:00",
+      "wednesday": "08:30-16:00",
+      "thursday": "08:30-16:00",
+      "friday": "08:30-16:00",
+      "saturday": "08:00-14:00"
     },
-    "confidence": "default",
-    "source": "typical beauty, hair & cosmetics hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Salute Salon): Mo,Su off; Tu-Fr 08:30-16:00; Sa 08:00-14:00"
   },
   "416b5738-3c7e-4d06-be8f-7cdfa5dc871b": {
     "days": {
@@ -6202,7 +6209,7 @@
   },
   "8f08fbe6-f482-4043-8767-cb7ea85e3bae": {
     "days": {
-      "monday": "05:00-21:30",
+      "monday": "06:00-20:00",
       "tuesday": "05:00-21:30",
       "wednesday": "05:00-21:30",
       "thursday": "05:00-21:30",
@@ -6211,7 +6218,7 @@
       "sunday": "06:00-20:00"
     },
     "confidence": "scraped",
-    "source": "openstreetmap (Virgin Active): Mo-Th 05:00-21:30; Fr 05:00-21:00; Sa-Su 06:00-20:00"
+    "source": "openstreetmap (Virgin Active): Mo 06:00-20:00; Tu-Th 05:00-21:30; Fr 05:00-21:00; Sa-Su 06:00-20:00"
   },
   "2b7fb44e-ca85-497d-b4e5-9b8657d7a9d3": {
     "days": {
