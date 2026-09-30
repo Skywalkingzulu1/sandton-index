@@ -77,6 +77,36 @@ def ensure_pages_source():
         print(f">>> Pages source already {BRANCH} /")
 
 
+def discard(path):
+    """Remove a temp directory, tolerating Windows file locks.
+
+    git keeps read handles on loose objects briefly after a push, so a plain
+    rmtree intermittently fails with PermissionError on WinError 5. The
+    clone is disposable and outside the published output, so a leftover
+    directory must not abort a publish that already succeeded -- retry once,
+    then force and continue.
+    """
+    if not os.path.exists(path):
+        return
+    for attempt in range(3):
+        try:
+            shutil.rmtree(path)
+            return
+        except (PermissionError, OSError):
+            time.sleep(1.5)
+            if attempt == 1:
+                shutil.rmtree(path, onerror=_force_remove)
+                return
+
+
+def _force_remove(func, path, _exc):
+    try:
+        os.chmod(path, 0o700)
+        func(path)
+    except OSError:
+        pass
+
+
 def copy_into(src, dst):
     for entry in os.listdir(src):
         s = os.path.join(src, entry)
@@ -89,8 +119,7 @@ def copy_into(src, dst):
 
 def publish():
     print(f">>> publishing to {BRANCH}")
-    if os.path.exists(CLONE):
-        shutil.rmtree(CLONE)
+    discard(CLONE)
 
     run(["git", "clone", "--quiet", REMOTE, CLONE])
     r = run(["git", "checkout", "--quiet", BRANCH], cwd=CLONE, check=False)
@@ -110,7 +139,7 @@ def publish():
     if run(["git", "diff", "--cached", "--quiet"], cwd=CLONE,
            check=False).returncode == 0:
         print("    nothing changed")
-        shutil.rmtree(CLONE)
+        discard(CLONE)
         return False
 
     run(["git", "-c", "user.name=Sandton Index",
@@ -122,7 +151,7 @@ def publish():
     sha = run(["git", "rev-parse", "--short", "HEAD"], cwd=CLONE).stdout.strip()
     n = len(run(["git", "ls-files"], cwd=CLONE).stdout.splitlines())
     print(f"    pushed {sha} ({n} files)")
-    shutil.rmtree(CLONE)
+    discard(CLONE)
     return True
 
 
