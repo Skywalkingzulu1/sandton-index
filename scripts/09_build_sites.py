@@ -36,6 +36,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cadastral  # noqa: E402
 from config import (  # noqa: E402
     DATA,
     GOOGLE_SITE_VERIFICATION,
@@ -1693,16 +1694,19 @@ def load_properties(records, zone_labels):
         prop["nearby_businesses"] = [r for _d, r in near[:8]]
         prop["nearby_business_count"] = len(near)
 
-        zone = zone_dist = None
-        if near:
-            zone, zone_dist = near[0][1]["zone"], near[0][0]
-        if zone and zone_dist is not None and zone_dist <= 1500:
-            prop["area"] = zone
-            prop["area_display"] = zone_labels.get(
-                zone, zone.replace("-", " ").title())
-        else:
-            prop["area"] = ""
-            prop["area_display"] = "Sandton"
+        # Area comes from the Council for Geoscience cadastral layer, which
+        # carries MIN_REGION for every parcel in the bbox. That replaces an
+        # earlier version that inferred an area from whichever indexed
+        # business happened to be closest -- correct only where businesses are
+        # dense, and silently wrong in exactly the sparse residential areas
+        # this directory cares about. Where cadastral has no nearby parcel no
+        # area is claimed at all.
+        region = cadastral.suburb_for(prop["lat"], prop["lon"]) \
+            if prop.get("lat") and prop.get("lon") else ""
+        prop["cadastral_suburb"] = cadastral.suburb_display(region)
+        prop["area_source"] = "cadastral" if region else ""
+        prop["area"] = region
+        prop["area_display"] = prop["cadastral_suburb"] or "Sandton"
 
         prop["has_address"] = bool(prop.get("street_address"))
         prop["has_levels"] = prop.get("levels") is not None

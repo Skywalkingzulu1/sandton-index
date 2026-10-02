@@ -30,3 +30,12 @@ venv/
 # Same reasoning as data/_google_cache/: regenerable, large, and useless on
 # another machine. Tiles are cached so a re-run does not re-hammer the API.
 data/_osm_cache/
+
+# Cached Council for Geoscience cadastral responses (about 10 MB).
+# Regenerable and useless on another machine.
+data/_cadastral_cache/
+
+# Derived spatial index: 109k parcel points, 3.8 MB, rebuilt by
+# 15_harvest_cadastral.py. Responses are cached in data/_cadastral_cache,
+# so a re-run is cheap and works offline. Not worth 3.8 MB of history.
+data/cadastral_index.json

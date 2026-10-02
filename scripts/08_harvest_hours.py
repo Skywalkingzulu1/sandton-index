@@ -364,6 +364,63 @@ def main():
     elements = fetch_overpass()
     print(f"      {len(elements)} OSM elements with hours in bbox")
 
+    # Refuse to write when the harvest came back empty.
+    #
+    # When every Overpass mirror is down, fetch_overpass() returns [] and the
+    # run "succeeds". Every record then falls through to a category default,
+    # so a network outage silently replaces 140 real scraped schedules with
+    # guessed ones -- and the build still verifies clean, because default
+    # hours are correctly excluded from JSON-LD. That happened twice before
+    # this guard existed.
+    #
+    # Atomic writes do not help here: they stop a truncated file, but writing
+    # a complete, wrong file is exactly the problem. The previous harvest on
+    # disk is strictly better than an empty one, so it is kept.
+    if not elements:
+        keep = os.path.join(DATA, "hours.json")
+        if not (os.path.exists(keep) and os.path.getsize(keep) > 0):
+            print("      WARNING: no OSM data and no previous harvest on "
+                  "disk; leaving hours absent.")
+            return 0
+
+        # Re-apply the previous harvest rather than skipping the run.
+        #
+        # Simply returning is not enough: 07 rebuilds businesses.json from
+        # the source CSV on every pipeline run, and that file carries no
+        # hours. Bailing out here therefore stripped every schedule from the
+        # dataset -- published once as 858 pages with zero opening hours --
+        # because nothing re-applied them. The schedules already collected on
+        # disk are strictly better than nothing, so they are written back.
+        with open(keep, encoding="utf-8") as fh:
+            prior = json.load(fh)
+        restored = 0
+        for rec in records:
+            entry = prior.get(rec["id"])
+            if entry and entry.get("days"):
+                rec["opening_hours"] = entry["days"]
+                rec["hours_confidence"] = entry.get("confidence", "default")
+                rec["hours_source"] = entry.get("source", "")
+                restored += 1
+            else:
+                fallback = default_hours(rec["hub"])
+                if fallback:
+                    rec["opening_hours"] = fallback
+                    rec["hours_confidence"] = "default"
+                    rec["hours_source"] = (
+                        f"typical {rec['hub_title'].lower()} hours, "
+                        "unverified")
+                else:
+                    rec["opening_hours"] = None
+                    rec["hours_confidence"] = "none"
+                    rec["hours_source"] = ""
+        _write_json_atomic(biz_path, data)
+        with open(keep, "w", encoding="utf-8") as fh:
+            json.dump(prior, fh, indent=2, ensure_ascii=False)
+        print(f"      WARNING: Overpass unreachable. Re-applied the previous "
+              f"harvest ({restored} schedules kept) instead of overwriting "
+              f"them with guesses.")
+        return 0
+
     print("[2/3] Matching scraped hours to records by proximity...")
     scraped = match_to_records(elements, records)
     print(f"      {len(scraped)} records matched a scraped schedule")

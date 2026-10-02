@@ -22,6 +22,7 @@ STAGES = [
     ("classify + group", "07_classify_and_group.py"),
     ("harvest hours", "08_harvest_hours.py"),
     ("harvest properties", "13_harvest_properties.py"),
+    ("harvest cadastral", "15_harvest_cadastral.py"),
     ("build sites", "09_build_sites.py"),
     ("verify build", "verify_build.py"),
 ]
@@ -33,7 +34,7 @@ STAGES = [
 # already cached on disk rather than blocking a publish, because the
 # generators treat both datasets as optional: no hours.json means no hours
 # module, no properties.json means no property pages.
-NON_BLOCKING = {"harvest hours", "harvest properties"}
+NON_BLOCKING = {"harvest hours", "harvest properties", "harvest cadastral"}
 
 
 def main():
