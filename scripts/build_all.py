@@ -21,15 +21,19 @@ ROOT = os.path.dirname(HERE)
 STAGES = [
     ("classify + group", "07_classify_and_group.py"),
     ("harvest hours", "08_harvest_hours.py"),
+    ("harvest properties", "13_harvest_properties.py"),
     ("build sites", "09_build_sites.py"),
     ("verify build", "verify_build.py"),
 ]
 
-# A stage allowed to fail without blocking the rest. Overpass is a free
-# public endpoint subject to rate limiting; the harvester already degrades to
-# category-default hours, so losing it degrades data quality rather than
-# blocking a publish.
-NON_BLOCKING = {"harvest hours"}
+# A stage allowed to fail without blocking the rest. Both harvests query free
+# public endpoints that are rate limited and frequently overloaded -- Overpass
+# timed out on every mirror while this was written, and the OSM /map API
+# refuses above 50k nodes per request. Each degrades to whatever data is
+# already cached on disk rather than blocking a publish, because the
+# generators treat both datasets as optional: no hours.json means no hours
+# module, no properties.json means no property pages.
+NON_BLOCKING = {"harvest hours", "harvest properties"}
 
 
 def main():

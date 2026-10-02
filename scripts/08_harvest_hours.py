@@ -34,20 +34,16 @@ import time
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DATA, HOURS_DEFAULTS  # noqa: E402
+from config import DATA, HOURS_DEFAULTS, SANDTON_BBOX  # noqa: E402
 
 OVERPASS_ENDPOINTS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
 ]
 
-# Bounding box for the Sandton cluster (Sandton CBD / Rivonia / Illovo).
-SANDTON_BBOX = {
-    "south": -26.1800,
-    "west": 27.9800,
-    "north": -26.0200,
-    "east": 28.1300,
-}
+# Bounding box for the Sandton cluster. Now shared with the property harvest
+# (13_harvest_properties.py) via config, so both cover identical ground.
+# Imported above from config; not redefined here.
 
 # Map the OSM `opening_hours` weekday tags into a normalized structure.
 WEEKDAY_KEYS = {

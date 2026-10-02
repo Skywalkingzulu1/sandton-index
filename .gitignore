@@ -25,3 +25,8 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# Cached OSM /map API tile responses for the property harvest.
+# Same reasoning as data/_google_cache/: regenerable, large, and useless on
+# another machine. Tiles are cached so a re-run does not re-hammer the API.
+data/_osm_cache/

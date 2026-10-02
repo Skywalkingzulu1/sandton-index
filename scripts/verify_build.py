@@ -418,6 +418,85 @@ def main():
         notes.append(f"sitemap: {total_urls} URLs across "
                      f"{max(1, -(-total_urls // 500))} file(s)")
 
+    # --- 10. property pages claim nothing they cannot source -------------
+# A building page is almost entirely about someone else's property. The
+# failure mode is publishing a unit count, a price, an occupancy figure or an
+# amenity list that nobody supplied. Each of those is a specific fabricated
+# claim, so each is checked rather than trusted.
+    prop_faults = []
+    prop_pages = 0
+    prop_tenancy = []
+
+    # Facts about a property that would be fabrication unless sourced. Each is
+    # scanned with a surrounding window so the page's own disclaimer ("unit
+    # numbers, occupancy, amenities and leasing status are not published
+    # here") is not mistaken for a claim. A disclaimer that names the term is
+    # the opposite of asserting it.
+    FORBIDDEN = [
+        (r"\b\d+\s*(?:residential\s+)?units?\b", "unit count"),
+        (r"\b\d+\s*(?:office\s+)?units?\s*(?:available|let|for rent)", "let units"),
+        (r"\boccupancy\b", "occupancy"),
+        # allow "floor area of 12400", "floor area is 12400", "lettable: 5000"
+        (r"\b(?:floor area|lettable|rentable|gla)\b[^.]{0,24}\d", "floor area"),
+        # thousands separators, optionally spaced: R1 850 000 / R1,850,000
+        (r"\bR\s?\d[\d\s,\.]{3,}", "rental price"),
+        (r"\b(?:built|year built|completed in)\s*(?:in\s*)?(?:19|20)\d\d",
+         "year built"),
+        (r"\b(?:24\/7|24-7)\s*(?:security|access|manned)\b", "security claim"),
+        # amenity followed closely by an availability claim
+        (r"\b(?:gym|swimming pool|pool|sauna|tennis court|generator|"
+         r"backup water)\b[^.]{0,30}(?:included|available|on site|onsite|"
+         r"for residents|free)", "amenity claim"),
+    ]
+    DISCLAIMER = (
+        "not published here", "cannot be verified", "are never published",
+        "never published here", "cannot verify", "not something open mapping",
+        "not verifiable", "no unit numbers",
+    )
+    TENANT_WORDS = re.compile(
+        r"\b(tenant[s]?|occupier[s]?|lessee[s]?)\b", re.I)
+
+    for p in pages:
+        rel = os.path.relpath(p, SITE).replace("\\", "/")
+        if not (rel.startswith("properties/") or "/properties/" in rel):
+            continue
+        prop_pages += 1
+        with open(p, encoding="utf-8") as fh:
+            html = fh.read()
+        body = html.split("</style>")[-1]
+        for pattern, label in FORBIDDEN:
+            # finditer, not search: the page's own disclaimer names these
+            # terms ("unit numbers, occupancy, amenities ... are not
+            # published here"), and search would stop at that excused first
+            # match and never examine a genuine claim further down.
+            for m in re.finditer(pattern, body, re.I):
+                window = body[max(0, m.start() - 110):m.end() + 110].lower()
+                if any(w in window for w in DISCLAIMER):
+                    continue
+                prop_faults.append(
+                    f"{rel} publishes a {label} ({m.group(0)!r})")
+                break
+        for m in TENANT_WORDS.finditer(body):
+            window = body[max(0, m.start() - 110):m.end() + 110].lower()
+            if not any(w in window for w in DISCLAIMER
+                       + ("not presented as tenants", "add a tenant directory",
+                          "tenant directory")):
+                prop_tenancy.append(f"{rel} ({m.group(0)!r})")
+                break
+        # OpenStreetMap must be credited wherever building data appears
+        if "OpenStreetMap" not in body and "openstreetmap" not in html:
+            prop_faults.append(f"{rel} shows building data without crediting "
+                               "OpenStreetMap")
+
+    if prop_faults:
+        failures.append(f"{len(prop_faults)} property claim problem(s), e.g. "
+                        f"{prop_faults[:3]}")
+    if prop_tenancy:
+        failures.append(f"{len(prop_tenancy)} property pages assert tenancy "
+                        f"without the disclaimer, e.g. {prop_tenancy[:3]}")
+    if prop_pages:
+        notes.append(f"property pages checked: {prop_pages}")
+
     # --- report ---------------------------------------------------------
     print("=" * 62)
     print("SANDTON INDEX -- build verification")

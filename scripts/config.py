@@ -516,3 +516,15 @@ HUB_BY_SLUG = {h["slug"]: h for h in HUB_GROUPS}
 # appear on their category and suburb pages; they just do not get a dedicated
 # near-me landing page.
 MIN_HUB_LISTINGS = 3
+
+# Bounding box for the Sandton cluster (Sandton CBD / Rivonia / Illovo).
+# Shared by the opening-hours harvest (Overpass) and the property harvest
+# (OSM /map API) so both cover exactly the same ground. Defined here rather
+# than in either harvester because two copies of a geographic boundary is one
+# more than there should be.
+SANDTON_BBOX = {
+    "south": -26.1800,
+    "west": 27.9800,
+    "north": -26.0200,
+    "east": 28.1300,
+}

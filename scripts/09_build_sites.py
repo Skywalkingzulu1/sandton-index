@@ -28,6 +28,7 @@ Outputs: site/ (ready to publish)
 """
 import html
 import json
+import math
 import os
 import shutil
 import sys
@@ -245,6 +246,8 @@ text-transform:uppercase;letter-spacing:.05em}
 font-size:.85rem;font-weight:600}
 .card .acts a{color:var(--primary)}
 .card .acts a:hover{text-decoration:underline}
+/* buildings below the substance bar: named, mapped, but no page of their own */
+.card .thin{color:var(--muted);font-weight:500;font-size:.82rem}
 
 /* ===== TIER BADGES ===== */
 .badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;
@@ -1622,6 +1625,358 @@ do.</p>
                extra_head=schema_site()))
 
 
+# ---------------------------------------------------------------- properties
+CLASS_LABEL = {
+    "residential": "Residential",
+    "commercial": "Commercial",
+    "industrial": "Industrial",
+}
+CLASS_TITLE = {
+    "residential": "Residential complex",
+    "commercial": "Commercial building",
+    "industrial": "Industrial building",
+}
+
+
+def _haversine_m(lat1, lon1, lat2, lon2):
+    """Great-circle distance in metres."""
+    p = math.radians
+    dlat = p(lat2 - lat1)
+    dlon = p(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2
+         + math.cos(p(lat1)) * math.cos(p(lat2)) * math.sin(dlon / 2) ** 2)
+    return 6371000 * 2 * math.asin(math.sqrt(a))
+
+
+def load_properties(records, zone_labels):
+    """Load OSM complexes and decide what each one is entitled to.
+
+    Two decisions matter here, and both are about honesty rather than volume.
+
+    Area. There is no polygon data for the suburbs, so a property cannot be
+    placed by boundary. It is placed by proximity to the businesses already
+    indexed: whichever zone's listings sit closest is the area. That is a real
+    geographic fact, but it is an inference, so a property further than 1.5 km
+    from any indexed business is given no area at all rather than a wrong one.
+
+    Substance. A page carrying a name and nothing else is thin, and 168 of
+    them would be padding. A property earns its own page only if OSM carries an
+    address, or a storey count, or enough mapped businesses sit nearby to say
+    something genuinely useful about where it is. The rest are listed on index
+    pages and nowhere else.
+    """
+    path = os.path.join(DATA, "properties.json")
+    if not os.path.exists(path):
+        return []
+
+    with open(path, encoding="utf-8") as fh:
+        props = json.load(fh)["records"]
+
+    pts = [(r["lat"], r["lon"], r) for r in records
+           if r.get("lat") and r.get("lon")]
+
+    used = {}
+    for prop in props:
+        base = slugify(prop["name"]) or "building"
+        key = f"properties/{base}"
+        n = used.get(key, 0)
+        used[key] = n + 1
+        prop["path"] = key if n == 0 else f"{key}-{n}"
+
+        near = []
+        if prop.get("lat") and prop.get("lon"):
+            for lat, lon, rec in pts:
+                d = _haversine_m(prop["lat"], prop["lon"], lat, lon)
+                if d <= 1200:
+                    near.append((d, rec))
+        near.sort(key=lambda x: x[0])
+        prop["nearby_businesses"] = [r for _d, r in near[:8]]
+        prop["nearby_business_count"] = len(near)
+
+        zone = zone_dist = None
+        if near:
+            zone, zone_dist = near[0][1]["zone"], near[0][0]
+        if zone and zone_dist is not None and zone_dist <= 1500:
+            prop["area"] = zone
+            prop["area_display"] = zone_labels.get(
+                zone, zone.replace("-", " ").title())
+        else:
+            prop["area"] = ""
+            prop["area_display"] = "Sandton"
+
+        prop["has_address"] = bool(prop.get("street_address"))
+        prop["has_levels"] = prop.get("levels") is not None
+        prop["gets_page"] = (prop["has_address"] or prop["has_levels"]
+                             or prop["nearby_business_count"] >= 3)
+
+    props.sort(key=lambda p: (not p["gets_page"], p["name"].lower()))
+    return props
+
+
+def maps_directions_for(prop):
+    return ("https://www.google.com/maps/dir/?api=1&destination="
+            f"{prop['lat']},{prop['lon']}")
+
+
+def property_card(prop):
+    """Card for a building on an index page.
+
+    Only links to a details page when one exists. 105 of the 168 complexes
+    do not clear the substance bar and have no page, so an unconditional
+    "Details" link would emit 105 dead internal links -- which the broken
+    link gate would (correctly) fail the build on.
+    """
+    bits = [prop["area_display"]]
+    if prop.get("street_address"):
+        bits.append(prop["street_address"])
+    if prop.get("levels"):
+        bits.append(f"{prop['levels']} "
+                    f"{'storey' if prop['levels'] == 1 else 'storeys'}")
+    acts = []
+    if prop["gets_page"]:
+        acts.append(f'<a href="{SITE_URL}/{e(prop["path"])}/">Details</a>')
+    else:
+        acts.append('<span class="thin">No detail page yet</span>')
+    acts.append(f'<a href="{maps_directions_for(prop)}" target="_blank" '
+                'rel="noopener">Directions</a>')
+    heading = (f'<a href="{SITE_URL}/{e(prop["path"])}/">{e(prop["name"])}</a>'
+               if prop["gets_page"] else e(prop["name"]))
+    return f"""<article class="card">
+<div class="cat">{e(CLASS_LABEL.get(prop['class'], prop['class']))}</div>
+<h3>{heading}</h3>
+<div class="meta">{e(' · '.join(bits))}</div>
+<div class="acts">{' '.join(acts)}</div>
+</article>"""
+
+
+def build_property_pages(props, zone_labels):
+    """Property index pages, near-me pages and individual building pages."""
+    from property_schema import (  # noqa: PLC0415
+        schema_breadcrumbs, schema_itemlist, schema_property)
+
+    published = [p for p in props if p["gets_page"]]
+    n_ind = 0
+
+    by_class = defaultdict(list)
+    for p in props:
+        by_class[p["class"]].append(p)
+
+    for prop in published:
+        rows = ""
+        if prop.get("street_address"):
+            rows += (f"<p><strong>Address</strong><br>"
+                     f"{e(prop['street_address'])}<br>Gauteng, South Africa</p>")
+        if prop.get("levels") is not None:
+            rows += (f"<p><strong>Storeys</strong><br>{prop['levels']} "
+                     f"{'storey' if prop['levels'] == 1 else 'storeys'}</p>")
+        if prop.get("website"):
+            rows += ('<p><strong>Website</strong><br>'
+                     f'<a href="{e(prop["website"])}" target="_blank" '
+                     f'rel="noopener">{e(prop["website"])}</a></p>')
+        rows += f"<p><strong>Area</strong><br>{e(prop['area_display'])}</p>"
+
+        near_biz = ""
+        if prop["nearby_businesses"]:
+            items = "".join(
+                f'<li><a href="{SITE_URL}/{e(r["path"])}/">{e(r["name"])}</a>'
+                f'<span>{e(r["zone_display"])}</span></li>'
+                for r in prop["nearby_businesses"])
+            near_biz = f"""<div class="portal-block">
+<h3>Businesses mapped nearby</h3>
+<p class="small">Businesses the index has mapped within walking distance of
+this building. They are not presented as tenants: whether any of them
+actually occupies this property is not something open mapping data can
+verify.</p>
+<ul class="portal-list">{items}</ul></div>"""
+
+        others = [p for p in published
+                  if p["path"] != prop["path"]
+                  and _haversine_m(prop["lat"], prop["lon"],
+                                   p["lat"], p["lon"]) <= 900]
+        near_prop = ""
+        if others:
+            items = "".join(
+                f'<li><a href="{SITE_URL}/{e(p["path"])}/">{e(p["name"])}</a>'
+                f'<span>{e(p["area_display"])}</span></li>'
+                for p in others[:10])
+            near_prop = f"""<div class="portal-block">
+<h3>Other buildings nearby</h3>
+<ul class="portal-list">{items}</ul></div>"""
+
+        crumb = (f'<div class="crumb"><a href="{SITE_URL}/">Home</a> / '
+                 f'<a href="{SITE_URL}/properties/">Properties</a> / '
+                 f'<a href="{SITE_URL}/properties/{e(prop["class"])}/">'
+                 f'{e(CLASS_LABEL.get(prop["class"], prop["class"]))}</a>'
+                 f' / {e(prop["name"])}</div>')
+
+        body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+{crumb}
+<div class="hero-eyebrow"><span class="dot"></span>
+{e(CLASS_LABEL.get(prop['class'], prop['class']))}</div>
+<h1>{e(prop['name'])}</h1>
+<p>{e(CLASS_TITLE.get(prop['class'], 'Building'))} in
+{e(prop['area_display'])}, Johannesburg. Location, directions and what is
+mapped nearby.</p>
+</div></div>
+<div class="wrap biz">
+<div class="biz-grid">
+<section class="biz-panel">
+<h2 class="sec">Details</h2>
+{rows}
+<h2 class="sec">How this data is sourced</h2>
+<p class="small">Building details are mapped from OpenStreetMap contributors
+and may be incomplete or out of date. Unit numbers, occupancy, amenities and
+leasing status are not published here because they cannot be verified from
+open mapping data. If you manage this building,
+<a href="{SITE_URL}/needs-a-website/">claim the listing</a> to correct or
+extend it.</p>
+</section>
+<section class="biz-panel">
+<h2 class="sec">Where to find it</h2>
+<iframe class="map" title="Map showing {e(prop['name'])}"
+ src="https://www.openstreetmap.org/export/embed.html?bbox={prop['lon']-0.004:.5f}%2C{prop['lat']-0.004:.5f}%2C{prop['lon']+0.004:.5f}%2C{prop['lat']+0.004:.5f}&amp;layer=mapnik&amp;marker={prop['lat']:.5f}%2C{prop['lon']:.5f}"
+ loading="lazy"></iframe>
+<p class="small"><a href="{maps_directions_for(prop)}" target="_blank"
+ rel="noopener">Open directions in Google Maps</a></p>
+</section>
+</div>
+<div class="portal">
+<h2 class="sec">Around this building</h2>
+<div class="portal-grid">
+{near_biz}
+{near_prop}
+</div>
+</div>
+<div class="cta">
+<h2>Do you manage {e(prop['name'])}?</h2>
+<p>Claim this free listing to publish your own details, correct the mapped
+information and add a tenant directory.</p>
+<a class="btn" href="{SITE_URL}/needs-a-website/">Claim this property</a>
+</div>
+</div>"""
+
+        trail = [
+            ("Home", f"{SITE_URL}/"),
+            ("Properties", f"{SITE_URL}/properties/"),
+            (CLASS_LABEL.get(prop["class"], prop["class"]),
+             f"{SITE_URL}/properties/{e(prop['class'])}/"),
+            (prop["name"], f"{SITE_URL}/{e(prop['path'])}/"),
+        ]
+        desc = (f"{prop['name']} is a "
+                f"{CLASS_TITLE.get(prop['class'], 'building')} in "
+                f"{prop['area_display']}, Johannesburg. Location, directions "
+                "and mapped businesses nearby.")
+        write(os.path.join(prop["path"], "index.html"),
+              page(f"{prop['name']} | {SITE_NAME}", desc, body,
+                   f"{SITE_URL}/{e(prop['path'])}/",
+                   extra_head=schema_breadcrumbs(trail)
+                   + schema_property(prop) + schema_site()))
+        n_ind += 1
+
+    n_cls = 0
+    for cls, plist in sorted(by_class.items()):
+        plist = sorted(plist, key=lambda p: p["name"].lower())
+        label = CLASS_LABEL.get(cls, cls)
+        title_word = CLASS_TITLE.get(cls, "Building")
+        cards = "".join(property_card(p) for p in plist)
+        body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="crumb"><a href="{SITE_URL}/">Home</a> /
+<a href="{SITE_URL}/properties/">Properties</a> / {e(label)}</div>
+<div class="hero-eyebrow"><span class="dot"></span> {len(plist)} mapped</div>
+<h1>{e(label)} in Sandton</h1>
+<p>{len(plist)} {e(title_word.lower())}s mapped across the Sandton area from
+OpenStreetMap, each with its own page, location and directions.</p>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">All {len(plist)} {e(title_word.lower())}s</h2>
+{finder_html("Search " + label, "Filter by building name")}
+<div class="grid">{cards}</div>
+<div class="cta">
+<h2>Missing your building?</h2>
+<p>Most Sandton buildings are not mapped in open data. If you manage one,
+claim a free page and add your own details.</p>
+<a class="btn" href="{SITE_URL}/needs-a-website/">Add your building</a>
+</div>
+</div>"""
+        write(os.path.join("properties", cls, "index.html"),
+              page(f"{label} in Sandton | {SITE_NAME}",
+                   f"{label} across Sandton, Johannesburg: locations, "
+                   "directions and what is mapped nearby.", body,
+                   f"{SITE_URL}/properties/{e(cls)}/",
+                   extra_head=schema_itemlist(
+                       f"{label} in Sandton", cls,
+                       [p for p in plist if p["gets_page"]]) + schema_site()))
+        n_cls += 1
+
+        by_area = defaultdict(list)
+        for p in plist:
+            if p["area"]:
+                by_area[p["area"]].append(p)
+        for area, ap in sorted(by_area.items()):
+            if len(ap) < MIN_HUB_LISTINGS:
+                continue
+            adisp = zone_labels.get(area, area.replace("-", " ").title())
+            acards = "".join(property_card(p) for p in
+                             sorted(ap, key=lambda p: p["name"].lower()))
+            body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="crumb"><a href="{SITE_URL}/">Home</a> /
+<a href="{SITE_URL}/properties/">Properties</a> /
+<a href="{SITE_URL}/properties/{e(cls)}/">{e(label)}</a> / {e(adisp)}</div>
+<div class="hero-eyebrow"><span class="dot"></span> {len(ap)} mapped</div>
+<h1>{e(title_word)}s in {e(adisp)}</h1>
+<p>{len(ap)} {e(title_word.lower())}s mapped in {e(adisp)}, Sandton. Pick
+one for its location, directions and what is mapped nearby.</p>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">All {len(ap)} in {e(adisp)}</h2>
+{finder_html(f"Search {label} in " + adisp, "Filter by building name")}
+<div class="grid">{acards}</div>
+</div>"""
+            write(os.path.join("properties", cls, area, "index.html"),
+                  page(f"{title_word}s in {adisp} | {SITE_NAME}",
+                       f"{title_word}s mapped in {adisp}, Sandton, "
+                       "Johannesburg.", body,
+                       f"{SITE_URL}/properties/{e(cls)}/{e(area)}/",
+                       extra_head=schema_itemlist(
+                           f"{title_word}s in {adisp}", cls, ap) + schema_site()))
+            n_cls += 1
+
+    groups = ""
+    for cls, plist in sorted(by_class.items()):
+        label = CLASS_LABEL.get(cls, cls)
+        cards = "".join(property_card(p) for p in
+                        sorted(plist, key=lambda p: p["name"].lower())[:40])
+        groups += f"""<h2 class="sec"><a href="{SITE_URL}/properties/{e(cls)}/">
+{e(label)}</a> <span style="font-weight:400;text-transform:none;
+letter-spacing:0">({len(plist)})</span></h2>
+<div class="grid">{cards}</div>"""
+
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> {len(props)} mapped</div>
+<h1>Residential, commercial<br>and industrial <span class="grad">buildings</span></h1>
+<p>Every named building mapped in open data across the Sandton area, with
+location, directions and the businesses indexed nearby. Source data is
+OpenStreetMap, so coverage is partial by nature.</p>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<div class="cta" style="margin-top:0">
+<h2>Coverage is incomplete</h2>
+<p>Most Sandton buildings are not mapped in open data, and unit numbers,
+occupancy, amenities and leasing status are never published here because they
+cannot be verified. If you manage a building, you can add it yourself.</p>
+<a class="btn" href="{SITE_URL}/needs-a-website/">Add your building</a>
+</div>
+{groups}
+</div>"""
+    write(os.path.join("properties", "index.html"),
+          page(f"Buildings in Sandton | {SITE_NAME}",
+               "Residential, commercial and industrial buildings mapped across "
+               "Sandton, Johannesburg, with location and directions.", body,
+               f"{SITE_URL}/properties/", extra_head=schema_site()))
+
+    return n_ind, n_cls
+
+
 # Google processes only 500 URLs per sitemap file on the free tier, so a
 # single flat sitemap silently truncates once the site passes that mark. 775
 # URLs shipped as one file and Google only ever saw 500 of them. Shard into a
@@ -1796,6 +2151,22 @@ def main():
     print(f"  intent indexes : {n_intent}")
 
     print(f"  landings       : 2 (needs-a-website, hours-not-published)")
+
+    # 4c. property pages (residential / commercial / industrial complexes)
+    #
+    # Harvested by 13_harvest_properties.py. Only complexes that clear the
+    # substance bar get an individual page; the rest are listed on the index.
+    props = load_properties(records, zone_labels)
+    if props:
+        n_prop, n_prop_cls = build_property_pages(props, zone_labels)
+        n_with_page = sum(1 for p in props if p["gets_page"])
+        print(f"  property builds: {len(props)} complexes, "
+              f"{n_with_page} with their own page")
+        print(f"  property pages : {n_prop + n_prop_cls + 1} "
+              f"({n_prop} buildings, {n_prop_cls} category/area, 1 index)")
+    else:
+        print("  property builds: no properties.json -- run "
+              "13_harvest_properties.py first")
 
     # 5. 404 + robots
     write("404.html", page(
