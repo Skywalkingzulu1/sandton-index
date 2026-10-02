@@ -1,0 +1,263 @@
+{
+ "c1da6264-3193-458c-83b9-353242f01b6d": {
+  "matched_name": "Markham - Sandton",
+  "place_id": "ChIJfbmQojJzlR4RZO3CQg5vWGE",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 685 1455",
+  "opening_hours": {
+   "friday": "09:00-20:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-19:00",
+   "tuesday": "09:00-19:00",
+   "wednesday": "09:00-19:00",
+   "thursday": "09:00-19:00"
+  },
+  "rating": 4.2,
+  "review_count": 96,
+  "maps_url": "https://www.google.com/maps?cid=7014478526669843812",
+  "google_website": "www.markham.co.za",
+  "google_address": "Sandton City Shopping Centre, Cnr Rivonia Rd & 5th St, Sandton, Johannesburg, 2196"
+ },
+ "51ae81ab-f905-47ce-bc69-bcc04d0d5b6c": {
+  "matched_name": "REPLAY SANDTON",
+  "place_id": "ChIJp3U99S1zlR4RluoUtUL9D4E",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 783 1233",
+  "opening_hours": {
+   "friday": "09:00-20:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-20:00",
+   "tuesday": "09:00-20:00",
+   "wednesday": "09:00-20:00",
+   "thursday": "09:00-20:00"
+  },
+  "rating": 3.7,
+  "review_count": 69,
+  "maps_url": "https://www.google.com/maps?cid=9299930218491079318",
+  "google_website": "replayjeans.co.za",
+  "google_address": "Mall, Shop U48 /49, Sandton City, Rivonia Rd, Sandhurst, Johannesburg, 2196"
+ },
+ "aaaf27a9-7274-4a6f-a0af-4fc56feed7d6": {
+  "matched_name": "Desch",
+  "place_id": "ChIJp3U99S1zlR4RZCi_lcKGAPw",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 81 604 5840",
+  "opening_hours": {
+   "friday": "09:00-19:00",
+   "saturday": "09:00-19:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-19:00",
+   "tuesday": "09:00-19:00",
+   "wednesday": "09:00-19:00",
+   "thursday": "09:00-19:00"
+  },
+  "rating": 3.8,
+  "review_count": 15,
+  "maps_url": "https://www.google.com/maps?cid=18158661867851950180",
+  "google_website": "www.desch.co.za",
+  "google_address": "Desch - Store u37 Upper Retail Level 83 Rivonia Road Sandton City Shopping Mall, Sandhurst, Johannesburg, 2196"
+ },
+ "bba1937f-c70f-4269-96d0-183f947c6963": {
+  "matched_name": "Foschini - Sandton",
+  "place_id": "ChIJm0GIuzJzlR4RqYS5WXaNA9I",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 685 1406",
+  "opening_hours": {
+   "friday": "08:00-20:00",
+   "saturday": "08:00-20:00",
+   "sunday": "08:00-18:00",
+   "monday": "08:00-20:00",
+   "tuesday": "08:00-20:00",
+   "wednesday": "08:00-20:00",
+   "thursday": "08:00-20:00"
+  },
+  "rating": 3.6,
+  "review_count": 139,
+  "maps_url": "https://www.google.com/maps?cid=15133094712345986217",
+  "google_website": "www.foschini.co.za",
+  "google_address": "Office No. 175, Sandton City, 79 Rivonia Rd, Sandhurst, Johannesburg, 2146"
+ },
+ "58b49092-b655-4988-994e-0ce4cfcc0371": {
+  "matched_name": "POLO Sandton",
+  "place_id": "ChIJp3U99S1zlR4RNaI3mZTsXtI",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 883 6126",
+  "opening_hours": {
+   "friday": "09:00-20:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-19:00",
+   "tuesday": "09:00-20:00",
+   "wednesday": "09:00-20:00",
+   "thursday": "09:00-20:00"
+  },
+  "rating": 3.7,
+  "review_count": 45,
+  "maps_url": "https://www.google.com/maps?cid=15158813518745543221",
+  "google_website": "polo.co.za",
+  "google_address": "Shop U31, Sandton City, 5th St, Sandhurst, Sandton, 2196"
+ },
+ "57da54b8-6a0f-425b-873e-f7b16c65f50c": {
+  "matched_name": "Diesel Sandton",
+  "place_id": "ChIJ004RZtIMlR4RU0_rSO9xG9Y",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 87 365 3887",
+  "opening_hours": {
+   "friday": "09:00-20:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-20:00",
+   "tuesday": "09:00-20:00",
+   "wednesday": "09:00-20:00",
+   "thursday": "09:00-20:00"
+  },
+  "rating": 4.5,
+  "review_count": 37,
+  "maps_url": "https://www.google.com/maps?cid=15428050221022269267",
+  "google_website": "diesel.co.za",
+  "google_address": "Shop L73A, Sandton City, Sandton Dr, Sandhurst, Sandton, 2196"
+ },
+ "cc294ae1-ab39-47e6-a0f0-4be0941c7bce": {
+  "matched_name": "Queenspark",
+  "place_id": "ChIJI2eaojJzlR4R_1vTPJj1TJQ",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 10 001 8424",
+  "opening_hours": {
+   "friday": "09:00-19:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-19:00",
+   "tuesday": "09:00-19:00",
+   "wednesday": "09:00-19:00",
+   "thursday": "09:00-19:00"
+  },
+  "rating": 3.2,
+  "review_count": 22,
+  "maps_url": "https://www.google.com/maps?cid=10686186050047663103",
+  "google_website": "www.queenspark.com",
+  "google_address": "Sandton City Shopping Centre, Corner of Fifth Street & Alice Lane, 5th St, Sandhurst, Sandton, 2146"
+ },
+ "27007076-b57e-4f4d-b405-4af4caaca6f3": {
+  "matched_name": "Khaliques Sandton",
+  "place_id": "ChIJsaqqashzlR4RZMymwA2hvwM",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 783 2468",
+  "opening_hours": {
+   "friday": "09:00-17:30",
+   "saturday": "09:00-15:00",
+   "monday": "09:00-17:30",
+   "tuesday": "09:00-17:30",
+   "wednesday": "09:00-17:30",
+   "thursday": "09:00-17:30"
+  },
+  "rating": 4.5,
+  "review_count": 157,
+  "maps_url": "https://www.google.com/maps?cid=270111583104322660",
+  "google_website": "khaliques.co.za",
+  "google_address": "126 Rivonia Rd, Sandown, Sandton, 2192"
+ },
+ "4d0dce62-d071-4e8d-8602-199d4209a0e3": {
+  "matched_name": "Checkers Hyper Sandton",
+  "place_id": "ChIJ294YbDJzlR4RSYpCQJu6teI",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 245 0800",
+  "opening_hours": {
+   "friday": "09:00-20:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-20:00",
+   "tuesday": "09:00-20:00",
+   "wednesday": "09:00-20:00",
+   "thursday": "09:00-20:00"
+  },
+  "rating": 4.4,
+  "review_count": 3069,
+  "maps_url": "https://www.google.com/maps?cid=16336168399317142089",
+  "google_website": "www.checkers.co.za/store-directory-and-leaflets",
+  "google_address": "and, Shop L0A Sandton City Corner of Alice Lane, 5th St, Sandton, 2196"
+ },
+ "20a176f1-6c2a-4eea-901f-7392aa75ad7b": {
+  "matched_name": "Sandton City",
+  "place_id": "ChIJu6K6ei1zlR4RS3iNn8RaO24",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 217 6000",
+  "opening_hours": {
+   "friday": "09:00-20:00",
+   "saturday": "09:00-20:00",
+   "sunday": "09:00-18:00",
+   "monday": "09:00-20:00",
+   "tuesday": "09:00-20:00",
+   "wednesday": "09:00-20:00",
+   "thursday": "09:00-20:00"
+  },
+  "rating": 4.6,
+  "review_count": 47869,
+  "maps_url": "https://www.google.com/maps?cid=7943042168334940235",
+  "google_website": "www.sandtoncity.com",
+  "google_address": "83 Rivonia Rd, Sandhurst, Sandton, 2196"
+ },
+ "5c6cd6c9-febd-4146-a75d-46b0e4d0640e": {
+  "matched_name": "Best Price Supermarket",
+  "place_id": "ChIJcatkMnZzlR4R7-RKbTgGEPg",
+  "claimed": "YES",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 78 671 6824",
+  "opening_hours": {
+   "friday": "09:00-19:30",
+   "saturday": "08:30-19:30",
+   "sunday": "08:30-19:30",
+   "monday": "09:00-19:30",
+   "tuesday": "09:00-19:30",
+   "wednesday": "09:00-19:30",
+   "thursday": "09:00-19:30"
+  },
+  "rating": 4.1,
+  "review_count": 114,
+  "maps_url": "https://www.google.com/maps?cid=17874793760455058671",
+  "google_address": "24 9th Ave, Edenburg, Sandton, 2128"
+ },
+ "7aa3f06f-d64e-4dc9-94d9-8da12d078c41": {
+  "matched_name": "Food Town Freedom Supermarket",
+  "place_id": "ChIJv0EWGaUNlR4RdIdGclm3nBI",
+  "claimed": "NO",
+  "rating_date": "2026-10-02",
+  "retrieved_at": "2026-10-02",
+  "google_phone": "+27 11 440 1927",
+  "opening_hours": {
+   "friday": "07:00-18:00",
+   "saturday": "07:00-13:00",
+   "sunday": "07:00-13:00",
+   "monday": "07:00-18:00",
+   "tuesday": "07:00-18:00",
+   "wednesday": "07:00-18:00",
+   "thursday": "07:00-18:00"
+  },
+  "rating": 4.3,
+  "review_count": 35,
+  "maps_url": "https://www.google.com/maps?cid=1341148383846762356",
+  "google_address": "216 Watt Ave, Wynberg, Sandton, 2090"
+ }
+}

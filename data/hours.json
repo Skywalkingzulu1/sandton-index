@@ -2598,10 +2598,12 @@
       "wednesday": "09:00-18:00",
       "thursday": "09:00-18:00",
       "friday": "09:00-18:00",
-      "saturday": "09:00-17:00"
+      "saturday": "09:00-18:00",
+      "sunday": "09:00-15:00",
+      "public_holiday": "09:00-15:00"
     },
-    "confidence": "default",
-    "source": "typical malls & shopping centres hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Winifred Mandela Precinct): Mo-Sa 09:00-18:00; Su,PH 09:00-15:00"
   },
   "c7efe62a-daeb-464d-89fa-ff2ad4424104": {
     "days": {
@@ -4019,16 +4021,16 @@
   },
   "827b708c-465b-4b29-a203-4b30f8e5b835": {
     "days": {
-      "monday": "08:00-18:00",
-      "tuesday": "08:00-18:00",
-      "wednesday": "08:00-18:00",
-      "thursday": "08:00-18:00",
-      "friday": "08:00-18:00",
+      "monday": "07:30-18:00",
+      "tuesday": "07:30-18:00",
+      "wednesday": "07:30-18:00",
+      "thursday": "07:30-18:00",
+      "friday": "07:30-18:00",
       "saturday": "08:00-16:00",
       "sunday": "08:00-14:00"
     },
     "confidence": "scraped",
-    "source": "openstreetmap (Builders Express): Mo-Fr 08:00-18:00; Sa 08:00-16:00; Su 08:00-14:00"
+    "source": "openstreetmap (Builders Express): Mo-Fr 07:30-18:00; Sa 08:00-16:00; Su 08:00-14:00"
   },
   "50f2fba3-03d9-4879-a80d-de40f0d63e79": {
     "days": {
@@ -6949,15 +6951,14 @@
   },
   "f03e50b3-35e2-4323-bc96-2cb750eead94": {
     "days": {
-      "monday": "08:00-17:00",
-      "tuesday": "08:00-17:00",
-      "wednesday": "08:00-17:00",
-      "thursday": "08:00-17:00",
-      "friday": "08:00-17:00",
-      "saturday": "08:00-17:00"
+      "monday": "07:00-17:00",
+      "tuesday": "07:00-17:00",
+      "wednesday": "07:00-17:00",
+      "thursday": "07:00-17:00",
+      "friday": "07:00-17:00"
     },
-    "confidence": "default",
-    "source": "typical offices & coworking hours, unverified"
+    "confidence": "scraped",
+    "source": "openstreetmap (Regal Distributors SA (Pty) Ltd): Mo-Fr 07:00-17:00"
   },
   "923b4db6-d2c9-4231-9584-8c7ae1bb9a6c": {
     "days": {

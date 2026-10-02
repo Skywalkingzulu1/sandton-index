@@ -32,10 +32,12 @@ import os
 import shutil
 import sys
 from collections import defaultdict
+from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import (  # noqa: E402
     DATA,
+    GOOGLE_SITE_VERIFICATION,
     HUB_BY_SLUG,
     MIN_HUB_LISTINGS,
     SITE,
@@ -44,12 +46,47 @@ from config import (  # noqa: E402
     SITE_URL,
     slugify,
 )
+from data_overlay import enrich_record, hours_in_schema, load_overlay  # noqa
+from page_modules import (  # noqa: E402
+    coupon_module,
+    coupon_strip,
+    maps_readiness_module,
+    schema_breadcrumbs,
+    schema_coupon,
+    schema_faq,
+    dow_health_module,
+    open_status_pill,
+    property_portal_module,
+    rating_badge,
+    schema_local_business,
+    schema_site,
+    schema_faq_hub,
+    schema_itemlist,
+)
+from seo_content import seo_for  # noqa: E402
 
 DAY_LABELS = [
     ("monday", "Monday"), ("tuesday", "Tuesday"), ("wednesday", "Wednesday"),
     ("thursday", "Thursday"), ("friday", "Friday"), ("saturday", "Saturday"),
     ("sunday", "Sunday"),
 ]
+
+# Enrichment sidecar, loaded once.
+#
+# Optional by design: the Maps API is quota-metered and can be absent,
+# exhausted or mid-refresh. When data/google.json is missing or unreadable
+# this is simply {}, every record falls back to its OSM hours or the category
+# default, and the site builds exactly as it did before enrichment existed.
+# No provider is allowed to be a single point of failure.
+OVERLAY = load_overlay(DATA)
+
+# Intent cluster assignment, produced by 11_intent_engine.py.
+#
+# Also optional. Without it every record falls back to no cluster, which
+# simply means no DOW module and no property portal -- a plainer page, never a
+# broken one. Same rule as the overlay: no single enrichment step is allowed
+# to be a hard dependency of the build.
+INTENT = load_overlay(DATA, "intent.json")
 
 # Map a raw category onto a schema.org type for JSON-LD.
 SCHEMA_TYPE_BY_HUB = {
@@ -91,7 +128,7 @@ CSS = """
 --shadow-md:0 4px 20px rgba(0,0,0,.08);
 --shadow-lg:0 10px 40px rgba(0,0,0,.12);
 --shadow-glow:0 0 30px rgba(0,82,204,.15);
---r:16px;--r-sm:12px;--r-xs:8px;
+--r:16px;--r-lg:20px;--r-sm:12px;--r-xs:8px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -107,7 +144,7 @@ header.site{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.9);
 backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
 header.site .wrap{display:flex;align-items:center;gap:1rem;
-justify-content:space-between;height:66px}
+ justify-content:space-between;height:66px;position:relative}
 .brand{font-weight:800;font-size:1.22rem;color:var(--text);letter-spacing:-.5px;
 display:flex;align-items:center;gap:.55rem}
 .brand .mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
@@ -247,10 +284,7 @@ color:var(--primary);padding:.7rem 1.6rem;border-radius:var(--r-sm);font-weight:
 font-size:.92rem;box-shadow:0 4px 20px rgba(0,0,0,.15);transition:transform .25s,
 box-shadow .25s;letter-spacing:.01em}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.22);
-text-decoration:none}
-.btn-2{background:rgba(255,255,255,.1);color:#fff;box-shadow:none;
-border:1px solid rgba(255,255,255,.22)}
-.btn-2:hover{background:rgba(255,255,255,.16)}
+ text-decoration:none}
 
 /* ===== FOOTER ===== */
 footer.site{background:var(--footer);color:rgba(255,255,255,.5);
@@ -280,14 +314,175 @@ padding:1.1rem 1.3rem;margin-bottom:.7rem;transition:all .3s}
 .sib h3 a:hover{color:var(--primary)}
 .sib .meta{font-size:.84rem;color:var(--muted)}
 
+/* ===== BUSINESS PAGE ===== */
+.hero-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.5rem}
+.biz{padding-top:2rem;padding-bottom:3rem}
+.biz-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.2rem;
+ align-items:start;margin-bottom:2.5rem}
+.biz-panel{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+ padding:1.6rem 1.8rem}
+.small{font-size:.88rem;color:var(--muted);line-height:1.6}
+.rate{display:inline-flex;align-items:baseline;gap:.4rem;background:var(--tint-amber);
+ border:1px solid #f5e2b0;border-radius:99px;padding:.3rem .8rem;
+ margin-left:.5rem;vertical-align:middle;white-space:nowrap}
+.rate-stars{color:#f59e0b;font-size:.9rem;line-height:1}
+.rate-num{font-weight:800;color:var(--text);font-size:.92rem}
+.rate-rev{font-size:.78rem;color:var(--muted)}
+.rate-src{font-size:.72rem;color:var(--muted);opacity:.85}
+.kit-flag{display:block;font-size:.8rem;color:var(--muted);line-height:1.6;
+ margin-top:.7rem;flex-basis:100%}
+.conflict{background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--r);
+ padding:.7rem .9rem;font-size:.83rem;color:#7c2d12;line-height:1.6;
+ margin-top:.9rem}
+
+/* ===== LIVE STATUS PILL =====
+   Rendered ONLY from scraped hours. No hours evidence, no pill. */
+.pill{display:inline-flex;align-items:center;gap:.4rem;margin-left:.6rem;
+ padding:.22rem .7rem;border-radius:99px;font-size:.72rem;font-weight:700;
+ letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pill-open{background:var(--tint-green);color:#0f5132;border:1px solid #bbf0d4}
+.pill-open .dot{background:var(--accent-dark);animation:pulse 2s ease-in-out infinite}
+.pill-closed{background:#f1f5f9;color:#475569;border:1px solid var(--border)}
+.pill-closed .dot{background:#94a3b8}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ===== DOW HEALTH MODULE ===== */
+.dow-card{margin:2.5rem 0;padding:1.8rem;border-radius:var(--r-lg);
+ background:linear-gradient(150deg,#f0fdf4 0%,#e8f6f1 55%,#e6f4f7 100%);
+ border:1px solid #c7ead9}
+.dow-kicker{margin:0 0 .4rem;font-size:.68rem;text-transform:uppercase;
+ letter-spacing:.12em;font-weight:800;color:var(--accent-dark)}
+.dow-card .sec{margin:0 0 .6rem}
+.dow-body{font-size:.92rem;line-height:1.7;color:var(--text);max-width:62ch;
+ margin:0 0 1.1rem}
+.dow-pending{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-sm);
+ padding:.6rem .8rem;font-size:.8rem;color:#78350f;line-height:1.6;
+ margin:0 0 1.1rem;max-width:62ch}
+
+/* ===== PROPERTY PORTAL ===== */
+.portal{margin:2.5rem 0;padding:1.8rem;border-radius:var(--r-lg);
+ background:var(--tint_blue);border:1px solid #cfe0f7}
+.portal .sec{margin-top:0}
+.portal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+ gap:1.2rem}
+.portal-block{background:#fff;border:1px solid #dbe9f6;border-radius:var(--r);
+ padding:1.1rem 1.3rem}
+.portal-block h3{margin:0 0 .5rem;font-size:.98rem;color:var(--primary-darker)}
+.portal-list{list-style:none;padding:0;margin:0}
+.portal-list li{display:flex;justify-content:space-between;gap:1rem;
+ padding:.4rem 0;border-bottom:1px solid var(--light);font-size:.86rem}
+.portal-list li:last-child{border-bottom:0}
+.portal-list li span{color:var(--muted);font-size:.8rem;white-space:nowrap}
+.chips{list-style:none;padding:0;margin:1rem 0;display:flex;flex-wrap:wrap;
+ gap:.5rem}
+.chips li a{display:inline-block;background:var(--light);border:1px solid var(--border);
+ color:var(--primary-dark);padding:.4rem .85rem;border-radius:99px;
+ font-size:.85rem;font-weight:600;transition:all .2s}
+.chips li a:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.nearme{margin-top:.9rem;font-size:.86rem;color:rgba(255,255,255,.78);
+ font-weight:500}
+.nearme::before{content:"\1F4CD ";opacity:.9}
+.faqs{display:grid;gap:.6rem;max-width:820px}
+details.faq{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+ padding:.9rem 1.2rem}
+details.faq summary{font-weight:600;cursor:pointer;font-size:.95rem;
+ list-style:none;position:relative;padding-right:1.6rem}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::after{content:"+";position:absolute;right:0;top:0;
+ color:var(--primary);font-weight:700;font-size:1.2rem;line-height:1.1}
+details.faq[open] summary::after{content:"\2212"}
+details.faq p{margin:.7rem 0 0;font-size:.9rem;color:var(--muted);line-height:1.65}
+
+/* ===== GOOGLE MAPS KIT ===== */
+.maps-kit{margin:3rem 0;padding:2.2rem;border-radius:var(--r-lg);
+ background:linear-gradient(160deg,#f0f7ff 0%,#e6f4f7 100%);
+ border:1px solid #cfe3f5}
+.maps-kit .sec{margin-top:0}
+.kit-lead{font-size:1rem;color:var(--text);max-width:64ch;margin:0 0 1.6rem}
+.kit-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
+.kit-card{background:#fff;border:1px solid #dbe9f6;border-radius:var(--r);
+ padding:1.3rem 1.5rem}
+.kit-card h3{margin:0 0 .5rem;font-size:1rem;color:var(--primary-darker)}
+.kit-note{font-size:.83rem;color:var(--muted);line-height:1.6;margin:0 0 .8rem}
+.kit-pick{background:var(--primary);color:#fff;padding:.6rem .9rem;
+ border-radius:var(--r-sm);font-weight:700;font-size:.92rem;margin:0 0 .9rem}
+.kit-pick span{display:block;font-size:.68rem;text-transform:uppercase;
+ letter-spacing:.09em;opacity:.82;font-weight:700}
+.kit-extra-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;
+ color:var(--muted);font-weight:700;margin:0 0 .35rem}
+.kit-extra{list-style:none;padding:0;margin:0}
+.kit-extra li{font-size:.85rem;color:var(--text);padding:.16rem 0 .16rem .9rem;
+ position:relative}
+.kit-extra li::before{content:"";position:absolute;left:0;top:.62rem;width:4px;
+ height:4px;border-radius:50%;background:var(--accent)}
+.kit-nap{background:var(--light);border:1px dashed var(--border);padding:.7rem .9rem;
+ border-radius:var(--r-sm);font-size:.86rem;line-height:1.6;margin:0 0 .9rem;
+ user-select:all}
+.kit-hours-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;
+ color:var(--muted);font-weight:700;margin:0 0 .3rem}
+.kit-hours{background:var(--light);border:1px dashed var(--border);padding:.7rem .9rem;
+ border-radius:var(--r-sm);font-size:.83rem;line-height:1.85;margin:0 0 .8rem}
+.kit-hours b{color:var(--primary-darker);min-width:4.4rem;display:inline-block}
+.kit-cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.5rem}
+/* secondary/outline variant, always on a light surface */
+.btn-2{background:#fff;color:var(--primary-dark);border:1px solid var(--primary)}
+.btn-2:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ===== COUPON ===== */
+.coupon{margin:3rem 0 0;padding:1.7rem;border-radius:var(--r-lg);
+ background:linear-gradient(135deg,var(--primary-darker) 0%,var(--primary-dark) 55%,
+ var(--primary) 100%);color:#fff}
+.coupon-in{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.coupon-mark{font-size:2.5rem;font-weight:900;line-height:1;flex-shrink:0;
+ background:rgba(255,255,255,.13);padding:.9rem 1.1rem;border-radius:var(--r)}
+.coupon-mark span{font-size:1.4rem;vertical-align:super}
+.coupon-body{flex:1;min-width:250px}
+.coupon-kicker{margin:0 0 .3rem;font-size:.68rem;text-transform:uppercase;
+ letter-spacing:.12em;font-weight:700;color:var(--accent);opacity:.95}
+.coupon-body h3{margin:0 0 .35rem;font-size:1.2rem;color:#fff}
+.coupon-note{margin:0;font-size:.87rem;opacity:.9;line-height:1.6}
+.coupon-code{background:rgba(255,255,255,.18);padding:.1rem .5rem;
+ border-radius:4px;letter-spacing:.06em}
+.coupon .btn{background:#fff;color:var(--primary-darker);flex-shrink:0}
+.coupon .btn:hover{background:var(--accent);color:#fff}
+.coupon-sm{padding:1.2rem 1.4rem;margin-top:2rem}
+.coupon-sm .coupon-mark{font-size:1.8rem;padding:.7rem .85rem}
+.coupon-sm .coupon-body h3{font-size:1.02rem}
+.coupon-strip{background:var(--primary-darker);color:#fff;padding:.85rem 0;
+ border-top:1px solid rgba(255,255,255,.12)}
+.coupon-strip .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem}
+.coupon-strip-tag{background:var(--accent);color:#04241a;font-size:.62rem;
+ text-transform:uppercase;letter-spacing:.11em;font-weight:800;padding:.24rem .5rem;
+ border-radius:3px;flex-shrink:0}
+.coupon-strip-offer{font-size:.88rem;font-weight:600}
+.coupon-strip-code{font-size:.82rem;opacity:.8}
+.coupon-strip-code b{background:rgba(255,255,255,.16);padding:.1rem .42rem;
+ border-radius:3px;letter-spacing:.05em}
+.coupon-strip-go{margin-left:auto;font-size:.82rem;font-weight:700;color:#fff;
+ text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px;
+ white-space:nowrap}
+.coupon-strip-go:hover{color:var(--accent)}
+@media(max-width:900px){.coupon-strip-go{margin-left:0}}
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:900px){
-.stats{grid-template-columns:repeat(2,1fr)}
+.biz-grid,.kit-grid{grid-template-columns:1fr}
+.coupon-in{flex-direction:column;align-items:flex-start}
+.coupon .btn{width:100%}
+}
 .foot-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:720px){
-nav.site{gap:1rem}
+nav.site{gap:.8rem}
 nav.site a:not(.nav-cta){display:none}
+nav.site.open{display:flex;flex-direction:column;align-items:stretch;gap:0;
+ position:absolute;top:66px;left:0;right:0;background:#fff;
+ border-bottom:1px solid var(--border);box-shadow:var(--shadow-md);padding:.5rem}
+nav.site.open a:not(.nav-cta){display:block;padding:.75rem 1.25rem;color:var(--text);
+ font-size:.95rem}
+nav.site.open a:not(.nav-cta):hover{background:var(--light);color:var(--primary)}
+.nav-toggle{display:block}
 .wrap{padding:0 1.25rem}
 .grid{grid-template-columns:1fr}
 .foot-grid{grid-template-columns:1fr}
@@ -297,10 +492,44 @@ nav.site a:not(.nav-cta){display:none}
 @media(max-width:480px){
 .stats{grid-template-columns:1fr}
 .btn{width:100%;max-width:290px;justify-content:center}
+nav.site .nav-cta{padding:.45rem .85rem;font-size:.85rem}
+.finder{padding:.6rem .75rem}
 }
+/* ===== MOBILE NAV TOGGLE =====
+   Previously every nav link was display:none under 720px, leaving a header
+   with a single orphaned button and no way to reach Categories or Suburbs. */
+.nav-toggle{display:none;background:transparent;border:1px solid var(--border);
+ border-radius:var(--r-xs);padding:.4rem .55rem;cursor:pointer;line-height:0;
+ color:var(--text)}
+.nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{display:block;
+ width:19px;height:2px;background:currentColor;border-radius:2px;
+ transition:transform .25s,opacity .2s}
+.nav-toggle span::before{content:'';transform:translateY(-6px)}
+.nav-toggle span::after{content:'';transform:translateY(4px)}
+.nav-toggle[aria-expanded="true"] span{background:transparent}
+.nav-toggle[aria-expanded="true"] span::before{transform:rotate(45deg)}
+.nav-toggle[aria-expanded="true"] span::after{transform:rotate(-45deg)}
+
+/* ===== FINDER (client-side filter) =====
+   Progressive enhancement only. Every card is server-rendered and visible
+   with JS off; the script merely hides non-matching cards. */
+.finder{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin:0 0 1.4rem;
+ background:#fff;border:1px solid var(--border);border-radius:var(--r);
+ padding:.7rem .9rem;box-shadow:var(--shadow-sm);position:relative;z-index:3}
+.finder input[type=search]{flex:1;min-width:220px;border:0;outline:0;font:inherit;
+ font-size:.98rem;color:var(--text);background:transparent;padding:.35rem .2rem}
+.finder input[type=search]::-webkit-search-cancel-button{cursor:pointer}
+.si-count{font-size:.8rem;color:var(--muted);font-weight:600;white-space:nowrap}
+.si-none{background:var(--tint-amber);border:1px solid #fde68a;border-radius:10px;
+ padding:.5rem .8rem;font-size:.85rem;color:#92400e;line-height:1.6;flex-basis:100%}
+/* display:grid and display:flex both beat the UA [hidden] rule, so an
+   emptied section would stay visible without these two lines */
+.grid[hidden],h2.sec[hidden]{display:none}
+
 @media(prefers-reduced-motion:reduce){
-*{animation:none!important;transition:none!important}
-html{scroll-behavior:auto}
+ *{animation:none!important;transition:none!important}
+ .nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{transition:none}
+ html{scroll-behavior:auto}
 }
 """.strip()
 
@@ -362,34 +591,111 @@ def maps_link(rec):
     return f"https://www.google.com/maps/search/?api=1&query={e(label)}"
 
 
+GENERIC_BUILDING_NAMES = {
+    "commercial", "office", "retail", "industrial", "shop", "store",
+    "unit", "building", "premises", "vacant",
+}
+
+
 def address_text(rec):
-    parts = [
-        rec.get("building_name", ""),
-        rec.get("street_address", ""),
-        rec.get("zone_display", ""),
-    ]
-    seen, out = set(), []
-    for p in parts:
+    """Full postal address: building, street, suburb, postcode.
+
+    Components are de-duplicated by containment, not just by equality.
+    street_address is frequently the bare suburb ("Sandton") while
+    zone_display is the fuller form ("Sandton CBD"), and an exact-match dedupe
+    leaves "Sandton, Sandton CBD, 2196" on the page.
+    """
+    out = []
+    zone = (rec.get("zone_display") or "").strip()
+    street = (rec.get("street_address") or "").strip()
+    # street_address sometimes arrives as a full compound line that already
+    # ends in the suburb ("138, Rivonia Road, Sandton, Sandton CBD"). The zone
+    # is appended again below, so trim it off the street first.
+    if zone and street.lower().endswith(zone.lower()):
+        street = street[:len(street) - len(zone)].rstrip(" ,")
+    # ...and then a trailing city/region token. The zone is more specific than
+    # the city, so repeating it ("Rivonia Road, Sandton, Sandton CBD") is noise.
+    if zone:
+        parts = [x.strip() for x in street.split(",") if x.strip()]
+        while parts and parts[-1].lower() in {"sandton", "johannesburg",
+                                             "gauteng", "south africa"}:
+            parts.pop()
+        street = ", ".join(parts)
+    for p in [rec.get("building_name", ""), street, zone]:
         p = (p or "").strip()
-        # building_name often just repeats the trading name in this dataset
-        if p and p.lower() != rec.get("name", "").lower() and p not in seen:
-            seen.add(p)
-            out.append(p)
+        # building_name often just repeats the trading name in this dataset,
+        # and is sometimes a bare type word from the source column
+        if not p or p.lower() == rec.get("name", "").lower():
+            continue
+        if p.lower() in GENERIC_BUILDING_NAMES:
+            continue
+        if any(p.lower() == q.lower() for q in out):
+            continue
+        # drop a component already named inside a longer one
+        if any(p.lower() in q.lower() for q in out):
+            continue
+        # and drop a longer component that only adds a suffix already present
+        if any(q.lower() in p.lower() for q in out):
+            out = [q for q in out if q.lower() not in p.lower()]
+        out.append(p)
     postcode = (rec.get("postcode") or "").strip()
-    if postcode:
+    if postcode and postcode not in out:
         out.append(postcode)
     return ", ".join(out) or "Sandton, Johannesburg"
 
 
-def hours_block(rec, compact=False):
+def street_line(rec):
+    """The part of the address that adds information beyond the suburb.
+
+    address_text() deliberately returns the full postal address, because the
+    business page needs every component. On a listing card, though, that
+    renders as "Sandton CBD · Sandton CBD, 2196" -- the suburb is already on
+    the left of the separator, so it is repeated on the right. This returns
+    only the street-level components, or "" when there are none.
+    """
+    zone = (rec.get("zone_display") or "").strip().lower()
+    postcode = (rec.get("postcode") or "").strip()
+    out = []
+    for p in (rec.get("building_name", ""), rec.get("street_address", "")):
+        p = (p or "").strip()
+        if not p or p == postcode:
+            continue
+        if p.lower() == rec.get("name", "").lower():
+            continue
+        if p.lower() in GENERIC_BUILDING_NAMES:
+            continue
+        # a component that is just the suburb, or already names the suburb,
+        # adds nothing next to it
+        # skip if the component is just the suburb, or the two name each other
+        if zone and (p.lower() in zone or zone in p.lower()):
+            continue
+        if p.lower() == zone:
+            continue
+        # drop a trailing city/region token -- the caller already shows the
+        # suburb, and "Rivonia Road, Sandton, Sandton CBD" reads as a mistake
+        segs = [x.strip() for x in p.split(",") if x.strip()]
+        while segs and segs[-1].lower() in {"sandton", "johannesburg",
+                                           "gauteng", "south africa"}:
+            segs.pop()
+        p = ", ".join(segs)
+        if not p:
+            continue
+        if p not in out:
+            out.append(p)
+    return ", ".join(out)
+
+
+def hours_block(rec, compact=False, enriched=None):
     """Render opening hours with an explicit confidence treatment.
 
-    Scraped hours are shown as fact. Inferred hours are shown with a visible
-    notice, because printing a guess in the same visual weight as verified
+    Scraped hours are shown as fact. Google hours carry a caveat because they
+    are a third-party copy. Inferred hours carry the strongest warning,
+    because printing a guess in the same visual weight as verified
     information is how a directory ends up sending customers to a closed door.
     """
-    days = rec.get("opening_hours")
-    confidence = rec.get("hours_confidence", "none")
+    enriched = enriched or enrich_record(rec, {})
+    days = enriched["hours"]
+    confidence = enriched["confidence"]
 
     if not days:
         return ('<p class="hrs"><strong>Opening hours</strong><br>'
@@ -415,7 +721,36 @@ def hours_block(rec, compact=False):
             'business, claim the listing to correct them &mdash; wrong opening '
             'hours push you down local results.</div>'
         )
+    elif confidence == "google" and not compact:
+        # Google's copy of the owner's published hours. Better than our guess,
+        # but it is a third-party snapshot that can be months out of date, so
+        # it is presented as "as listed on Google" and still worth confirming.
+        out.append(
+            '<div class="notice"><strong>As listed on Google, not confirmed '
+            'directly.</strong> These are the hours this business publishes on '
+            'its Google profile. They can go out of date, so call ahead if it '
+            'matters &mdash; and if they are wrong, claim the listing to fix '
+            'them.</div>'
+        )
     return "".join(out)
+
+
+def nearest_day_text(rec):
+    """'Open today until 17:00' for the meta description.
+
+    Only built from a scraped schedule. An inferred schedule is a guess, and
+    a guess about whether a real business is open right now would be wrong
+    often enough to be a bad trade even in a meta tag.
+    """
+    days = rec.get("opening_hours")
+    if not days or rec.get("hours_confidence") != "scraped":
+        return ""
+    key = ["monday", "tuesday", "wednesday", "thursday", "friday",
+           "saturday", "sunday"][datetime.now().weekday()]
+    span = days.get(key)
+    if not span or "-" not in span:
+        return ""
+    return f"until {span.split('-', 1)[1]}"
 
 
 def jsonld_local_business(rec):
@@ -459,6 +794,26 @@ def jsonld_local_business(rec):
     return f'<script type="application/ld+json">{script}</script>'
 
 
+def finder_html(scope, placeholder, target=""):
+    """Client-side filter over the .grid .card list already in the markup.
+
+    Progressive enhancement, not a replacement: every card is server-rendered
+    and readable with scripting off, so crawlers and no-JS visitors get the
+    full list. The script in page() only toggles display on the same nodes.
+
+    `target` scopes the filter to one grid by id. Pages holding two separate
+    grids (home: suburbs then categories) pass their id, so typing filters the
+    list the visitor is actually looking at rather than every card on the page.
+    """
+    return f"""<div class="finder">
+<input type="search" class="si-q" data-target="{e(target)}"
+ placeholder="{e(placeholder)}" aria-label="{e(scope)}">
+<span class="si-count" aria-live="polite"></span>
+<span class="si-none" hidden>No listings match that. Try a shorter word, or
+<a href="{SITE_URL}/categories/">browse every category</a>.</span>
+</div>"""
+
+
 def tier_badge(rec):
     tier = rec.get("tier", "C")
     label = {"A": "No website yet", "B": "Chain location",
@@ -470,12 +825,17 @@ def header_html():
     return f"""<header class="site"><div class="wrap">
 <a class="brand" href="{SITE_URL}/"><span class="mark">SI</span>
 <span>Sandton <b>Index</b></span></a>
-<nav class="site">
+<nav class="site" id="si-nav">
 <a href="{SITE_URL}/">Home</a>
 <a href="{SITE_URL}/categories/">Categories</a>
 <a href="{SITE_URL}/zones/">Suburbs</a>
+<a href="{SITE_URL}/intents/">Near me</a>
 <a class="nav-cta" href="{SITE_URL}/needs-a-website/">Get listed free</a>
-</nav></div></header>"""
+</nav>
+<button class="nav-toggle" id="si-nav-toggle" type="button"
+ aria-expanded="false" aria-controls="si-nav" aria-label="Open menu">
+<span></span></button>
+</div></header>"""
 
 
 def footer_html():
@@ -512,6 +872,55 @@ hours, directions and contact details, on one map.</p>
 </div>
 </div></footer>"""
 
+SITE_JS = """
+(function(){
+var b=document.getElementById("si-nav-toggle");
+if(b){
+ var n=document.getElementById("si-nav");
+ b.addEventListener("click",function(){
+  var open=n.className.indexOf("open")>-1;
+  n.className=open?"site":"site open";
+  b.setAttribute("aria-expanded",open?"false":"true");
+ });
+}
+function bind(input){
+ var sel=input.getAttribute("data-target");
+ var root=sel?document.getElementById(sel):document;
+ if(!root)return;
+ var cards=root.querySelectorAll(".card");
+ var grids=root.querySelectorAll(".grid");
+ var box=input.parentNode;
+ var cnt=box.querySelector(".si-count");
+ var hint=box.querySelector(".si-none");
+ var run=function(){
+  var s=input.value.trim().toLowerCase();
+  var shown=0;
+  for(var i=0;i<cards.length;i++){
+   var hit=s===""||cards[i].textContent.toLowerCase().indexOf(s)>-1;
+   cards[i].style.display=hit?"":"none";
+   if(hit)shown=shown+1;
+  }
+  if(cnt)cnt.textContent=cards.length?shown+" of "+cards.length+" shown":"";
+  if(hint)hint.hidden=shown!==0;
+  for(var g=0;g<grids.length;g=g+1){
+   var kids=grids[g].querySelectorAll(".card");
+   var any=false;
+   for(var k=0;k<kids.length;k=k+1){
+    if(kids[k].style.display!=="none")any=true;
+   }
+   grids[g].hidden=!any;
+   var hd=grids[g].previousElementSibling;
+   if(hd&&hd.tagName==="H2")hd.hidden=!any;
+  }
+ };
+ input.addEventListener("input",run);
+ run();
+}
+var qs=document.querySelectorAll(".si-q");
+for(var z=0;z<qs.length;z=z+1)bind(qs[z]);
+})();
+""".strip()
+
 
 def page(title, description, body, canonical, extra_head=""):
     """Wrap a page body in the shared shell."""
@@ -530,6 +939,7 @@ def page(title, description, body, canonical, extra_head=""):
 <meta name="theme-color" content="#0052cc">
 <meta name="geo.region" content="ZA-GT">
 <meta name="geo.placename" content="Sandton, Johannesburg">
+<meta name="google-site-verification" content="{e(GOOGLE_SITE_VERIFICATION)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
@@ -539,7 +949,9 @@ def page(title, description, body, canonical, extra_head=""):
 <body>
 {header_html()}
 {body}
+{coupon_strip()}
 {footer_html()}
+<script>{SITE_JS}</script>
 </body></html>
 """
 
@@ -558,10 +970,14 @@ def business_card(rec):
         acts.append(f'<a href="{e(hz)}">All {e(rec["hub_title"].lower())} '
                     f'here</a>')
 
+    street = street_line(rec)
+    meta = (f'{e(rec["zone_display"])} &middot; {e(street)}' if street
+            else e(rec["zone_display"]))
+
     return f"""<article class="card">
 <div class="cat">{e(rec['hub_title'])}</div>
 <h3><a href="{SITE_URL}/{e(rec['path'])}/">{e(rec['name'])}</a></h3>
-<div class="meta">{e(rec['zone_display'])} &middot; {e(address_text(rec))}</div>
+<div class="meta">{meta}</div>
 <div class="acts">{' '.join(acts)}</div>
 </article>"""
 
@@ -615,6 +1031,8 @@ def build_hub_page(hub_slug, zone_key, recs):
     no_hours = sum(1 for r in recs if not r.get("opening_hours"))
     no_site = sum(1 for r in recs if r.get("tier") == "A")
 
+    seo = seo_for(hub_slug)
+
     facts = []
     if no_site:
         facts.append(f"{no_site} have no website yet")
@@ -622,6 +1040,14 @@ def build_hub_page(hub_slug, zone_key, recs):
         facts.append(f"{no_hours} have no published hours")
 
     fact_html = (" " + " and ".join(facts) + ".") if facts else ""
+
+    # "Near me" copy. Built from real landmarks around this specific hub and
+    # zone rather than a generic template, because a page that reads the same
+    # on every suburb is a page that ranks for nothing.
+    nearby = " &middot; ".join(e(n) for n in seo["nearby"][:4])
+    service_html = "".join(f"<li>{e(s)}</li>" for s in seo["services"])
+    faq_html = "".join(f"""<details class="faq"><summary>{e(q)}</summary>
+<p>{e(a)}</p></details>""" for q, a in seo["faqs"])
 
     body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="crumb"><a href="{SITE_URL}/">Home</a> /
@@ -631,6 +1057,8 @@ def build_hub_page(hub_slug, zone_key, recs):
 <h1>{e(hub['title'])}<br>in <span class="grad">{e(zone_display)}</span></h1>
 <p>Every {e(hub['singular'])} in {e(zone_display)}, Sandton, with opening
 hours, directions and contact details.{fact_html}</p>
+<p class="nearme">Near {nearby} &mdash; covering {e(zone_display)},
+{e(recs[0]['hub_title']) if recs else 'Sandton'} and the wider Sandton area.</p>
 </div></div>
 <div class="wrap" style="position:relative;z-index:3">
 <div class="stats">
@@ -643,56 +1071,127 @@ hours, directions and contact details.{fact_html}</p>
 <div class="stat"><div class="stat-ico ico-amber">&#9889;</div>
 <b>{no_site}</b><span>No website</span></div>
 </div>
+<h2 class="sec">What people look for here</h2>
+<ul class="chips">{service_html}</ul>
 <h2 class="sec">All {len(recs)} in {e(zone_display)}</h2>
+{finder_html("Search " + hub["singular"] + " in " + zone_display,
+             "Filter by business name")}
 <div class="grid">{cards}</div>
 <div class="cta">
 <h2>Running a {e(hub['singular'])} in {e(zone_display)}?</h2>
 <p>Claim your free listing with your real hours, photos and contact details.</p>
 <a class="btn" href="{SITE_URL}/needs-a-website/">Get a free listing</a>
 </div>
+<h2 class="sec">Common questions</h2>
+<div class="faqs">{faq_html}</div>
+{coupon_module(compact=True)}
 </div>"""
+
     write(os.path.join(hub_slug, zone_key, "index.html"),
-          page(title, desc, body, canonical))
+          page(title, desc, body, canonical,
+               extra_head=schema_itemlist(hub, zone_display, recs)
+               + schema_faq_hub(hub_slug)
+               + schema_coupon()))
 
 
 # ---------------------------------------------------------------- business
-def build_business_page(rec, siblings):
-    """Detail page for one business, covering both branch and template roles."""
+def build_business_page(rec, siblings, zone_count=0):
+    """Full landing page for one business.
+
+    Section order is deliberate and follows how a local customer decides:
+
+      1. hero      -- what this is, where it is
+      2. actions   -- call / directions, above the fold, no scrolling
+      3. details   -- address, phone, hours
+      4. map       -- because "near me" is the whole intent
+      5. services  -- what they actually do, so the page matches the search
+      6. FAQ       -- the questions asked before choosing
+      7. Maps kit  -- how to get on Google Maps, the highest-value action
+      8. siblings  -- other branches
+      9. claim     -- conversion for a tier-A owner
+     10. coupon    -- cross-promotion, last so it never reads as the
+                      listed business's own offer
+    """
     hub = HUB_BY_SLUG.get(rec["hub"], {"title": "Sandton Business",
                                        "singular": "business"})
-    title = (f"{rec['name']}, {rec['zone_display']} | "
-             f"{hub['singular'].capitalize()} in Sandton")
-    desc = (f"{rec['name']} in {rec['zone_display']}, Sandton. "
-            f"Address, opening hours, phone and directions.")
+    seo = seo_for(rec["hub"])
+    enriched = enrich_record(rec, OVERLAY)
+    intent = INTENT.get(rec["id"]) or {}
+
+    title = (f"{rec['name']} &mdash; {seo['gbp_category']} in "
+             f"{rec['zone_display']}, Sandton | {SITE_NAME}")
+    desc = (
+        f"{rec['name']} is a {seo['gbp_category'].lower()} in "
+        f"{rec['zone_display']}, Sandton, Johannesburg. "
+        f"{'Open today ' + nearest_day_text(rec) + '. ' if rec.get('opening_hours') else ''}"
+        f"Address, phone and directions. "
+        f"{'No website listed yet. ' if rec['tier'] == 'A' else ''}"
+    )[:300]
     canonical = f"{SITE_URL}/{rec['path']}/"
 
+    # ---- action row: the only two things a visitor wants --------------
+    # phone comes from the overlay, not the raw record: a Google-supplied
+    # number is a real, dialable number for a business we otherwise list
+    # with no contact details at all, which is the entire reason to harvest it
+    phone = enriched.get("phone") or rec.get("phone") or ""
+    actions = []
+    if phone:
+        actions.append(
+            f'<a class="btn" href="tel:{e(phone.replace(" ", ""))}">'
+            f'Call {e(phone)}</a>')
+    actions.append(
+        f'<a class="btn{" btn-2" if phone else ""}" '
+        f'href="{maps_link(rec)}" target="_blank" rel="noopener">Directions</a>')
+    if rec.get("website"):
+        actions.append(f'<a class="btn btn-2" href="{e(rec["website"])}" '
+                       f'target="_blank" rel="noopener">Visit website</a>')
+    action_html = "".join(actions)
+
     bits = []
-    if rec.get("phone"):
-        bits.append(f'<a href="tel:{e(rec["phone"].replace(" ", ""))}">'
-                    f'{e(rec["phone"])}</a>')
+    if phone:
+        bits.append(f'<a href="tel:{e(phone.replace(" ", ""))}">'
+                    f'{e(phone)}</a>')
+    bits.append(f'<a href="{maps_link(rec)}" target="_blank" rel="noopener">'
+                f'Directions &amp; map</a>')
     if rec.get("website"):
         bits.append(f'<a href="{e(rec["website"])}" target="_blank" '
                     f'rel="noopener">Website</a>')
-    bits.append(f'<a href="{maps_link(rec)}" target="_blank" rel="noopener">'
-                f'Directions</a>')
-    contact = " &middot; ".join(bits) if bits else "No phone published"
+    contact = " &middot; ".join(bits)
 
-    # Tier A businesses get the conversion pitch on their own page. Tier B
-    # chains are never told they need a website -- they have one.
-    if rec["tier"] == "A":
-        claim = f"""<div class="cta">
+    # Where a Google number disagrees with the one we already had, say so on
+    # the page rather than silently picking one. A customer dialling the wrong
+    # number reaches a different business, and the only person who can resolve
+    # it is whoever reads this page.
+    conflict_html = ""
+    if enriched.get("phone_conflict"):
+        alt = (OVERLAY.get(rec["id"]) or {}).get("google_phone", "")
+        conflict_html = (
+            '<p class="conflict"><strong>Number to check.</strong> Google '
+            f'lists this business as {e(alt)}, which differs from the number '
+            'above. If you are the owner, claim the listing to correct it.'
+            '</p>')
+
+    claim = (f"""<div class="cta">
 <h2>Is this your business?</h2>
-<p>You have no website listed. Claim this free page and we will set up your
-details, photos and opening hours properly.</p>
-<a class="btn" href="{SITE_URL}/needs-a-website/?b={e(rec['id'])}">Claim this listing</a>
-</div>"""
-    else:
-        claim = f"""<div class="cta">
+<p>You have no website of your own yet. Claim this free page and we will set
+up your real details, photos and opening hours properly &mdash; at no cost.</p>
+<a class="btn" href="{SITE_URL}/needs-a-website/?b={e(rec['id'])}">Claim this listing free</a>
+</div>""" if rec["tier"] == "A" else f"""<div class="cta">
 <h2>Found a mistake in these details?</h2>
 <p>Hours, address or phone out of date? Claim the listing to correct it
 &mdash; accurate details are what local search rewards.</p>
 <a class="btn" href="{SITE_URL}/needs-a-website/?b={e(rec['id'])}">Update these details</a>
-</div>"""
+</div>""")
+
+    # ---- services: makes the page match a real search query ----------
+    service_html = "".join(
+        f'<li><a href="{SITE_URL}/{e(rec["hub"])}/'
+        f'{e(rec["zone"])}/">{e(s)}</a></li>' for s in seo["services"])
+
+    # ---- FAQ ---------------------------------------------------------
+    faq_html = "".join(
+        f"""<details class="faq"><summary>{e(q)}</summary>
+<p>{e(a)}</p></details>""" for q, a in seo["faqs"])
 
     sib_html = ""
     if siblings:
@@ -701,9 +1200,8 @@ details, photos and opening hours properly.</p>
 <div class="meta">{e(s['zone_display'])} &middot;
 {e(s.get('street_address') or address_text(s))}</div>
 </div>""" for s in siblings)
-        label = ("Other branches" if len(siblings) > 1 else "Nearby")
-        sib_html = f"""<h2 class="sec">{e(label)} of {e(rec['brand_slug'].replace('-', ' '))}</h2>
-{items}"""
+        label = "Other branches" if len(siblings) > 1 else "Nearby"
+        sib_html = f"""<h2 class="sec">{e(label)}</h2>{items}"""
 
     hz = hub_zone_url(rec)
     crumb_hub = (f'<a href="{e(hz)}">{e(hub["title"])}</a>' if hz
@@ -713,38 +1211,66 @@ details, photos and opening hours properly.</p>
 <div class="crumb"><a href="{SITE_URL}/">Home</a> /
 {crumb_hub} / {e(rec['name'])}</div>
 <div class="hero-eyebrow"><span class="dot"></span>
-{e(rec['hub_title'])} &middot; {e(rec['zone_display'])}</div>
+{e(seo['gbp_category'])} &middot; {e(rec['zone_display'])}
+{open_status_pill(rec, enriched)}</div>
 <h1>{e(rec['name'])}</h1>
-<p>{e(address_text(rec))}, Sandton, Johannesburg.</p>
+<p>{e(address_text(rec))}.</p>
+<div class="hero-actions">{action_html}</div>
 </div></div>
-<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
-<div style="margin-bottom:1.4rem">{tier_badge(rec)}</div>
-<div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
-<div>
-<h2 class="sec">Details</h2>
-<p><strong>Address</strong><br>{e(address_text(rec))}<br>Sandton,
-{('2196' if rec.get('postcode') else 'Johannesburg, Gauteng')}, South Africa</p>
+<div class="wrap biz">
+<div style="margin-bottom:1.6rem">{tier_badge(rec)}{rating_badge(enriched)}</div>
+
+<div class="biz-grid">
+<section class="biz-panel">
+<h2 class="sec">Contact &amp; details</h2>
+<p><strong>Address</strong><br>{e(address_text(rec))}<br>
+Gauteng, South Africa</p>
 <p><strong>Contact</strong><br>{contact}</p>
+{conflict_html}
+<p><strong>Category</strong><br>{e(seo['gbp_category'])}</p>
 <h2 class="sec">Opening hours</h2>
-{hours_block(rec)}
-</div>
-<div>
-<h2 class="sec">Find it</h2>
+{hours_block(rec, enriched=enriched)}
+</section>
+
+<section class="biz-panel">
+<h2 class="sec">Where to find it</h2>
 <iframe class="map" title="Map showing {e(rec['name'])}"
 src="{maps_embed_url(rec)}" loading="lazy"
 referrerpolicy="no-referrer-when-downgrade"></iframe>
-<p style="font-size:.85rem;color:var(--muted);margin-top:.9rem">
-<a href="{maps_link(rec)}" target="_blank" rel="noopener">Open in Google
-Maps</a> &mdash; add or correct this listing there too. It is where most people
-actually look for a business.</p>
+<p class="small"><a href="{maps_link(rec)}" target="_blank" rel="noopener">
+Open in Google Maps</a> &mdash; search results for nearby customers are
+decided on Google Maps, so a listing there matters more than any page here.</p>
+</section>
 </div>
-</div>
+
+<h2 class="sec">What {e(rec['name'])} does</h2>
+<p class="small">A {e(seo['gbp_category'].lower())} in {e(rec['zone_display'])}
+covering {e(', '.join(seo['nearby'][:3]))} and the wider Sandton area. Looking
+for something specific nearby?</p>
+<ul class="chips">{service_html}</ul>
+<p class="small">More {e(seo['gbp_category'].lower())} options in
+{e(rec['zone_display'])}: <a href="{SITE_URL}/{e(rec['hub'])}/{e(rec['zone'])}/">
+see all {zone_count}
+</a> &middot; <a href="{SITE_URL}/{e(rec['hub'])}/">all Sandton</a></p>
+
+<h2 class="sec">Common questions</h2>
+<div class="faqs">{faq_html}</div>
+
+{maps_readiness_module(rec, street_line(rec), enriched)}
+{property_portal_module(rec, siblings, intent.get('is_complex'))}
+{dow_health_module(intent.get('cluster'))}
 {sib_html}
 {claim}
+{coupon_module()}
 </div>"""
+
+    head = (schema_local_business(rec, enriched)
+            + schema_breadcrumbs(rec, hub)
+            + schema_faq(rec)
+            + schema_coupon())
+
     write(os.path.join(rec["path"], "index.html"),
-          page(title, desc, body, canonical,
-               extra_head=jsonld_local_business(rec)))
+          page(title, desc, body, canonical, extra_head=head))
 
 
 # ---------------------------------------------------------------- indexes
@@ -792,9 +1318,11 @@ free page here.</p>
 <b>{no_site}</b><span>No website</span></div>
 </div>
 <h2 class="sec">Browse by suburb</h2>
-<div class="grid">{zone_cards}</div>
+{finder_html("Search suburbs", "Filter by suburb name", "si-zone-grid")}
+<div class="grid" id="si-zone-grid">{zone_cards}</div>
 <h2 class="sec">Browse by category</h2>
-<div class="grid">
+{finder_html("Search categories", "Filter by category name", "si-cat-grid")}
+<div class="grid" id="si-cat-grid">
 {cat_cards}
 </div>
 <div class="cta">
@@ -803,7 +1331,8 @@ free page here.</p>
 <a class="btn" href="{SITE_URL}/needs-a-website/">Claim your business</a>
 </div>
 </div>"""
-    write("index.html", page(title, desc, body, f"{SITE_URL}/"))
+    write("index.html", page(title, desc, body, f"{SITE_URL}/",
+                           extra_head=schema_site()))
 
 
 def build_categories_index(records):
@@ -826,11 +1355,13 @@ then a suburb.</p>
 </div></div>
 <div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
 <h2 class="sec">All categories</h2>
+{finder_html("Search categories", "Filter by category name")}
 <div class="grid">{cards}</div></div>"""
     write(os.path.join("categories", "index.html"),
           page(f"Categories | {SITE_NAME}",
                "Browse Sandton businesses by category.", body,
-               f"{SITE_URL}/categories/"))
+               f"{SITE_URL}/categories/",
+               extra_head=schema_site()))
 
 
 def build_hub_index(hub, zones, records):
@@ -858,11 +1389,13 @@ def build_hub_index(hub, zones, records):
 </div></div>
 <div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
 <h2 class="sec">Choose a suburb</h2>
+{finder_html("Search suburbs", "Filter by suburb name")}
 <div class="grid">{cards}</div></div>"""
     write(os.path.join(hub["slug"], "index.html"),
           page(f"{hub['title']} in Sandton | {SITE_NAME}",
                f"{hub['title']} across Sandton, Johannesburg.", body,
-               f"{SITE_URL}/{hub['slug']}/"))
+               f"{SITE_URL}/{hub['slug']}/",
+               extra_head=schema_site() + schema_coupon()))
 
 
 def build_zone_index(zone_key, label, recs):
@@ -890,11 +1423,134 @@ text-transform:none;letter-spacing:0">({len(by_hub[hub_slug])})</span></h2>
 <p>Every listed business in {e(label)}, Sandton, grouped by category.</p>
 </div></div>
 <div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+{finder_html("Search listings in " + label, "Filter by business name")}
 {groups}</div>"""
     write(os.path.join("zones", zone_key, "index.html"),
           page(f"{label} businesses | {SITE_NAME}",
                f"Every listed business in {label}, Sandton, Johannesburg.",
-               body, f"{SITE_URL}/zones/{zone_key}/"))
+               body, f"{SITE_URL}/zones/{zone_key}/",
+               extra_head=schema_site()))
+
+
+def build_intent_indexes(records):
+    """One index page per intent cluster, listing every record in it.
+
+    Thin clusters are skipped rather than published. A page with three
+    listings cannot compete for "dentist sandton" and only adds a URL to
+    crawl, so anything below MIN_HUB_LISTINGS folds into the clusters that do
+    have depth.
+    """
+    try:
+        from importlib import util as _util
+        spec = _util.spec_from_file_location(
+            "intent_engine", os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "11_intent_engine.py"))
+        mod = _util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        clusters = mod.CLUSTERS
+    except Exception as exc:  # noqa: BLE001
+        print(f"  intent engine unavailable ({exc}); skipping intent pages")
+        return 0
+
+    by_cluster = defaultdict(list)
+    for r in records:
+        slug = (INTENT.get(r["id"]) or {}).get("cluster")
+        if slug:
+            by_cluster[slug].append(r)
+
+    built = 0
+    for c in clusters:
+        recs = by_cluster.get(c["slug"], [])
+        if len(recs) < MIN_HUB_LISTINGS:
+            continue
+
+        recs = sorted(recs, key=lambda r: (
+            bool(r.get("phone")), bool(r.get("lat")), r.get("name", "")))
+        cards = "".join(business_card(r) for r in recs[:120])
+        zones = sorted({r["zone_display"] for r in recs})
+        zone_links = " &middot; ".join(
+            f'<a href="{SITE_URL}/zones/">{e(z)}</a>' for z in zones[:8])
+
+        # the hub pages that back this cluster, so the two taxonomies link
+        hubs = sorted({r["hub_title"] for r in recs})
+        hub_links = " &middot; ".join(
+            f'<a href="{SITE_URL}/categories/">{e(h)}</a>' for h in hubs[:8])
+
+        title = f"{c['title']} in Sandton | {SITE_NAME}"
+        desc = (f"{len(recs)} {c['singular']} options across Sandton, "
+                f"Johannesburg. {c['intent']}. Hours, directions and contact "
+                f"details on one map.")
+
+        body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="crumb"><a href="{SITE_URL}/">Home</a> /
+<a href="{SITE_URL}/intents/">Intents</a> / {e(c['title'])}</div>
+<div class="hero-eyebrow"><span class="dot"></span> {len(recs)} listings</div>
+<h1>{e(c['title'])}<br>in <span class="grad">Sandton</span></h1>
+<p>{e(c['intent'])}. Every listing here is a real business in the Sandton
+cluster with its own page, hours and directions.</p>
+<p class="nearme">Across {zone_links} &mdash; and the wider Sandton area.</p>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3">
+<div class="stats">
+<div class="stat"><div class="stat-ico ico-blue">&#127978;</div>
+<b>{len(recs)}</b><span>Listings</span></div>
+<div class="stat"><div class="stat-ico ico-green">&#128205;</div>
+<b>{sum(1 for r in recs if r.get('phone'))}</b><span>With phone</span></div>
+<div class="stat"><div class="stat-ico ico-teal">&#128337;</div>
+<b>{sum(1 for r in recs if r.get('opening_hours'))}</b><span>Hours listed</span></div>
+<div class="stat"><div class="stat-ico ico-amber">&#9889;</div>
+<b>{sum(1 for r in recs if r['tier'] == 'A')}</b><span>No website</span></div>
+</div>
+<h2 class="sec">All {len(recs)} {e(c['singular'])} options</h2>
+{finder_html("Search " + c["title"], "Filter by name or category")}
+<div class="grid">{cards}</div>
+<h2 class="sec">Also browse by category</h2>
+<p class="small">{hub_links}</p>
+<div class="cta">
+<h2>Missing from this list?</h2>
+<p>If you run a {e(c['singular'])} in Sandton and are not listed, your free
+page is already built. Claim it and your details go live.</p>
+<a class="btn" href="{SITE_URL}/needs-a-website/">Get a free listing</a>
+</div>
+{coupon_module(compact=True)}
+</div>"""
+
+        write(os.path.join("intents", c["slug"], "index.html"),
+              page(title, desc, body, f"{SITE_URL}/intents/{c['slug']}/",
+                   extra_head=schema_itemlist(
+                       {"title": c["title"], "slug": "intents"}, "Sandton",
+                       recs) + schema_site()))
+        built += 1
+
+    # index of the clusters that earned a page
+    live = [c for c in clusters
+            if len(by_cluster.get(c["slug"], [])) >= MIN_HUB_LISTINGS]
+    cards = "".join(f"""<article class="card">
+<div class="cat">{len(by_cluster.get(c['slug'], []))} listings</div>
+<h3><a href="{SITE_URL}/intents/{e(c['slug'])}/">{e(c['title'])}</a></h3>
+<div class="meta">{e(c['intent'])}</div>
+<div class="acts"><a href="{SITE_URL}/intents/{e(c['slug'])}/">Browse &rarr;</a></div>
+</article>""" for c in sorted(live, key=lambda x: -len(by_cluster[x["slug"]])))
+
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> Search intents</div>
+<h1>What are you<br>looking for <span class="grad">near you</span>?</h1>
+<p>The same businesses, grouped by what people actually type into Google at
+the moment they need one. Pick the situation, not the category.</p>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">All intents</h2>
+{finder_html("Search intents", "Filter by what you need")}
+<div class="grid">{cards}</div>
+{coupon_module(compact=True)}
+</div>"""
+    write(os.path.join("intents", "index.html"),
+          page(f"What are you looking for near you? | {SITE_NAME}",
+               "Sandton businesses grouped by search intent: health, "
+               "workplaces, housing, retail, trades and more.",
+               body, f"{SITE_URL}/intents/", extra_head=schema_site()))
+    return built
 
 
 def build_zone_index_page(all_zones):
@@ -911,11 +1567,14 @@ def build_zone_index_page(all_zones):
 <p>Browse the index by area.</p>
 </div></div>
 <div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">All {sum(c for _z, _l, c in all_zones)} listings</h2>
+{finder_html("Search suburbs", "Filter by suburb name")}
 <div class="grid">{cards}</div></div>"""
     write(os.path.join("zones", "index.html"),
           page(f"Suburbs | {SITE_NAME}",
                "Browse the Sandton Index by suburb.", body,
-               f"{SITE_URL}/zones/"))
+               f"{SITE_URL}/zones/",
+               extra_head=schema_site()))
 
 
 def build_landing(records, slug, heading, blurb, cta_label, rows=()):
@@ -956,14 +1615,35 @@ do.</p>
 <div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
 <h2 class="sec">Listings missing hours</h2>
 {extra_rows}
+{coupon_module(compact=True)}
 </div>"""
     write(os.path.join(slug, "index.html"),
-          page(f"{heading} | {SITE_NAME}", blurb, body, f"{SITE_URL}/{slug}/"))
+          page(f"{heading} | {SITE_NAME}", blurb, body, f"{SITE_URL}/{slug}/",
+               extra_head=schema_site()))
 
 
-# ---------------------------------------------------------------- sitemap
+# Google processes only 500 URLs per sitemap file on the free tier, so a
+# single flat sitemap silently truncates once the site passes that mark. 775
+# URLs shipped as one file and Google only ever saw 500 of them. Shard into a
+# sitemap index instead, which also scales without a code change.
+SITEMAP_CHUNK = 500
+
+
+def _urlset_xml(urls, lastmod):
+    # lastmod is the crawl-priority signal Google actually uses. Every page is
+    # regenerated on each build, so the build timestamp is the honest value.
+    # Omitting it (as we did) is not fatal, but it removes the one field that
+    # tells Google which of 775 URLs changed.
+    body = "".join(
+        f"<url><loc>{e(u)}</loc><lastmod>{lastmod}</lastmod></url>"
+        for u in urls)
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{body}\n</urlset>\n")
+
+
 def build_sitemap(paths):
-    """Emit clean directory URLs.
+    """Emit clean directory URLs, sharded behind a sitemap index.
 
     Pages are written as <dir>/index.html, but every canonical tag and
     internal link uses the directory form, so the sitemap must match.
@@ -978,13 +1658,34 @@ def build_sitemap(paths):
             continue
         clean = p[:-len("index.html")] if p.endswith("index.html") else p
         urls.append(f"{SITE_URL}/{clean}")
-    body = "".join(f"<url><loc>{e(u)}</loc></url>" for u in sorted(set(urls)))
-    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
-           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           f"{body}\n</urlset>\n")
+    urls = sorted(set(urls))
     os.makedirs(SITE, exist_ok=True)
+    lastmod = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+    if len(urls) <= SITEMAP_CHUNK:
+        with open(os.path.join(SITE, "sitemap.xml"), "w",
+                  encoding="utf-8") as fh:
+            fh.write(_urlset_xml(urls, lastmod))
+        return len(urls)
+
+    shards = [urls[i:i + SITEMAP_CHUNK]
+              for i in range(0, len(urls), SITEMAP_CHUNK)]
+    names = []
+    for n, shard in enumerate(shards, start=1):
+        name = f"sitemap-{n:03d}.xml"
+        names.append(name)
+        with open(os.path.join(SITE, name), "w", encoding="utf-8") as fh:
+            fh.write(_urlset_xml(shard, lastmod))
+
+    refs = "".join(
+        f"<sitemap><loc>{e(SITE_URL)}/{e(n)}</loc></sitemap>" for n in names)
+    index_xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+                 '<sitemapindex xmlns="http://www.sitemaps.org/schemas/'
+                 'sitemap/0.9">\n'
+                 f"{refs}\n</sitemapindex>\n")
     with open(os.path.join(SITE, "sitemap.xml"), "w", encoding="utf-8") as fh:
-        fh.write(xml)
+        fh.write(index_xml)
+    return len(urls)
 
 
 def main():
@@ -1018,7 +1719,8 @@ def main():
     n_biz = 0
     for rec in records:
         siblings = [s for s in by_brand[rec["brand_slug"]] if s["id"] != rec["id"]]
-        build_business_page(rec, siblings)
+        build_business_page(rec, siblings,
+                            len(by_hub_zone[(rec["hub"], rec["zone"])]))
         n_biz += 1
     print(f"  business pages : {n_biz}")
 
@@ -1083,6 +1785,16 @@ def main():
         "Add your hours",
         rows=sorted(no_hours, key=lambda x: x["name"])[:60])
 
+    # 4b. intent cluster indexes
+    #
+    # A second taxonomy from HUB_GROUPS. The hub pages answer "what is this
+    # business"; these answer "what is someone typing into Google right now"
+    # -- "health clinic near me", "office park sandton". Same listings,
+    # different query, and on this site the intent query is the one with a
+    # realistic chance of ranking.
+    n_intent = build_intent_indexes(records)
+    print(f"  intent indexes : {n_intent}")
+
     print(f"  landings       : 2 (needs-a-website, hours-not-published)")
 
     # 5. 404 + robots
@@ -1091,10 +1803,45 @@ def main():
         "That page does not exist.",
         f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="hero-eyebrow"><span class="dot"></span> 404</div>
-<h1>Page not found</h1>
-<p>That page is not in the index. Try the <a href="{SITE_URL}/">homepage</a>
-or browse <a href="{SITE_URL}/categories/">by category</a>.</p>
-</div></div>""",
+<h1>That page is not<br>in the <span class="grad">index</span></h1>
+<p>The link may be out of date, or the business page may have moved. Every
+listing on the site is reachable from one of the four starting points below.</p>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<h2 class="sec">Start here</h2>
+<div class="grid">
+<article class="card">
+<div class="cat">{len(records)} businesses</div>
+<h3><a href="{SITE_URL}/">Home</a></h3>
+<div class="meta">Every business in Sandton, Johannesburg</div>
+<div class="acts"><a href="{SITE_URL}/">Browse &rarr;</a></div>
+</article>
+<article class="card">
+<div class="cat">By type of business</div>
+<h3><a href="{SITE_URL}/categories/">Categories</a></h3>
+<div class="meta">Offices, retail, health, automotive, trades and more</div>
+<div class="acts"><a href="{SITE_URL}/categories/">Browse &rarr;</a></div>
+</article>
+<article class="card">
+<div class="cat">By area</div>
+<h3><a href="{SITE_URL}/zones/">Suburbs</a></h3>
+<div class="meta">Sandton CBD, Rivonia, Illovo, Sunninghill and the rest</div>
+<div class="acts"><a href="{SITE_URL}/zones/">Browse &rarr;</a></div>
+</article>
+<article class="card">
+<div class="cat">By situation</div>
+<h3><a href="{SITE_URL}/intents/">Near me</a></h3>
+<div class="meta">What people actually search for when they need one</div>
+<div class="acts"><a href="{SITE_URL}/intents/">Browse &rarr;</a></div>
+</article>
+</div>
+<div class="cta">
+<h2>Looking for a specific business?</h2>
+<p>Search by name from the categories and suburb pages, or start from the
+full index.</p>
+<a class="btn" href="{SITE_URL}/categories/">Search the directory</a>
+</div>
+</div>""",
         f"{SITE_URL}/404.html"))
 
     for base in (SITE,):
@@ -1102,6 +1849,26 @@ or browse <a href="{SITE_URL}/categories/">by category</a>.</p>
                   encoding="utf-8") as fh:
             fh.write("User-agent: *\nAllow: /\nSitemap: "
                      f"{SITE_URL}/sitemap.xml\n")
+
+    # 5b. Search Console file verification
+    #
+    # The meta tag above is the method that works on GitHub Pages. This file is
+    # Google's other file-based method, emitted so the property can also be
+    # verified the moment a real domain is pointed here -- some setups prefer
+    # a single static file over a tag on every page.
+    if GOOGLE_SITE_VERIFICATION:
+        with open(os.path.join(
+                SITE, f"google{GOOGLE_SITE_VERIFICATION}.html"),
+                "w", encoding="utf-8") as fh:
+            fh.write(
+                "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+                "<title>Site verification</title></head><body>"
+                f"google-site-verification: {e(GOOGLE_SITE_VERIFICATION)}"
+                "</body></html>\n")
+        print(f"  gsc verification: meta tag + "
+              f"google{GOOGLE_SITE_VERIFICATION}.html")
+    else:
+        print("  gsc verification: disabled (no token configured)")
 
     # 6. sitemap over everything written
     written = []

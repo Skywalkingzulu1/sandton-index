@@ -18,7 +18,56 @@ DATA = os.path.join(ROOT, "data")
 SITE = os.path.join(ROOT, "site")
 SRC_DB = r"C:\Users\molel\zk\ngo\output\sandton_b2b\dow_sandton_master_db.csv"
 
+
+def load_env():
+    """Read ROOT/.env into os.environ without overwriting real env vars.
+
+    Hand-rolled rather than pulling in python-dotenv: the file format we need
+    is three lines of parsing, and the build has no third-party dependencies
+    worth adding a package for.
+
+    Existing environment variables win, so CI (which sets secrets as real env
+    vars) is never overridden by a developer's local file.
+    """
+    path = os.path.join(ROOT, ".env")
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and value:
+                os.environ.setdefault(key, value)
+
+
+load_env()
+
+# G Maps Extractor bearer token for the Google Maps Scraper API.
+# Optional: the pipeline completes without it, it only improves data quality.
+# Read through config (never imported directly in scripts) so there is exactly
+# one place that knows how the token is stored.
+GMAPSEXTRACTOR_TOKEN = os.environ.get("GMAPSEXTRACTOR_TOKEN", "").strip()
+
 SITE_NAME = "Sandton Index"
+
+# Google Search Console site verification.
+#
+# This is the HTML meta-tag method rather than a DNS TXT record, because the
+# site is served from <user>.github.io and that domain's DNS is owned by
+# GitHub. If a real domain is ever pointed at this site, switch to the DNS TXT
+# record and this becomes redundant -- 09_build_sites.py also writes the
+# standalone google<token>.html file, which covers the file-based method.
+#
+# Override with SANDTON_GOOGLE_VERIFICATION in .env, or set it to "" to
+# suppress the tag entirely.
+GOOGLE_SITE_VERIFICATION = os.environ.get(
+    "SANDTON_GOOGLE_VERIFICATION",
+    "GE9Rw6RV6BChb2Q7l-jmgEtL5-rmEpxinsXmoiR9ziY",
+).strip()
 
 # Base URL for canonical tags, sitemap entries and internal links.
 #

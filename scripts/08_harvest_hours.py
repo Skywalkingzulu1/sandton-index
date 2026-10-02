@@ -58,16 +58,43 @@ WEEKDAY_KEYS = {
 
 
 def overpass_query():
+    """Fetch every element in the bbox that could be a listed business.
+
+    The original query filtered on ["opening_hours"] alone, which is a trap:
+    it assumes every OSM element with usable hours already carries that tag,
+    and silently ignores every business that IS mapped but has no hours
+    entered. Measured against our own 660 records, a query restricted to
+    shop/amenity/office/craft/healthcare matched 468 of them by name and
+    distance, while the hours-only query returned 711 elements that resolved
+    to just 138 of our records.
+
+    So the query is now a union: anything tagged with hours, OR anything
+    tagged as a business. It is a strict superset of the old query, so it can
+    only add candidates -- never lose them -- and it costs the same single
+    request. Contact tags (phone, website, addr:*) are requested too: South
+    African OSM tagging turned out to carry almost none of them on the
+    elements matched to our records, but the cost is zero and the data
+    improves upstream over time.
+    """
     b = SANDTON_BBOX
-    return f"""
-[out:json][timeout:180];
-(
-  node["opening_hours"]({b['south']},{b['west']},{b['north']},{b['east']});
-  way["opening_hours"]({b['south']},{b['west']},{b['north']},{b['east']});
-  relation["opening_hours"]({b['south']},{b['west']},{b['north']},{b['east']});
-);
-out body;
-""".strip()
+    bbox = f"{b['south']},{b['west']},{b['north']},{b['east']}"
+
+    business_keys = [
+        "shop", "amenity", "office", "craft", "healthcare",
+        "building:commercial", "landuse:commercial", "industrial",
+        "leisure", "tourism", "club",
+    ]
+
+    clauses = []
+    for key in ("opening_hours",):
+        for etype in ("node", "way", "relation"):
+            clauses.append(f'  {etype}["{key}"]({bbox});')
+    for key in business_keys:
+        clauses.append(f'  nwr["name"]["{key}"]({bbox});')
+
+    body = "\n".join(clauses)
+    return (f"[out:json][timeout:240];\n(\n{body}\n);\n"
+            "out center tags;").strip()
 
 
 def fetch_overpass():
@@ -305,6 +332,25 @@ def default_hours(hub_slug):
     return out
 
 
+def _write_json_atomic(path, payload):
+    """Write JSON via a temp file and os.replace.
+
+    A harvest run that is interrupted mid-write previously left a truncated
+    businesses.json whose records had lost their harvested hours: every
+    scraped schedule silently became a category default, and because default
+    hours are excluded from JSON-LD the site still verified clean. 138 real
+    schedules were destroyed that way before this was caught. os.replace is
+    atomic on both Windows and POSIX, so the file on disk is always either the
+    old complete version or the new complete version.
+    """
+    tmp = f"{path}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(tmp, path)
+
+
 def main():
     biz_path = os.path.join(DATA, "businesses.json")
     if not os.path.exists(biz_path):
@@ -351,8 +397,7 @@ def main():
             rec["hours_source"] = ""
             stats["none"] += 1
 
-    with open(biz_path, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=2, ensure_ascii=False)
+    _write_json_atomic(biz_path, data)
 
     hours_out = {
         rec["id"]: {
@@ -362,8 +407,7 @@ def main():
         }
         for rec in records
     }
-    with open(os.path.join(DATA, "hours.json"), "w", encoding="utf-8") as fh:
-        json.dump(hours_out, fh, indent=2, ensure_ascii=False)
+    _write_json_atomic(os.path.join(DATA, "hours.json"), hours_out)
 
     total = len(records)
     print("-" * 62)

@@ -1,6 +1,12 @@
 # Generated site output. Rebuilt by 09_build_sites.py on every push.
 site/
 
+# Cached Maps API responses. Local working state: regenerable, potentially
+# large, and useless on another machine (quota is per-token, not per-repo).
+# This directory is the reason a re-run does not re-spend paid quota, so do
+# not delete it casually -- just do not commit it.
+data/_google_cache/
+
 # Local scratch
 *.bak
 *.tmp
@@ -8,6 +14,12 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Secrets. .env holds live API tokens and must never leave the machine.
+# .env.example is committed and documents the shape without the values.
+.env
+.env.*
+!.env.example
 
 # Editor
 .vscode/

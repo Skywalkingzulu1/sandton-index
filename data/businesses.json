@@ -14416,10 +14416,12 @@
         "wednesday": "09:00-18:00",
         "thursday": "09:00-18:00",
         "friday": "09:00-18:00",
-        "saturday": "09:00-17:00"
+        "saturday": "09:00-18:00",
+        "sunday": "09:00-15:00",
+        "public_holiday": "09:00-15:00"
       },
-      "hours_confidence": "default",
-      "hours_source": "typical malls & shopping centres hours, unverified"
+      "hours_confidence": "scraped",
+      "hours_source": "openstreetmap (Winifred Mandela Precinct): Mo-Sa 09:00-18:00; Su,PH 09:00-15:00"
     },
     {
       "id": "c7efe62a-daeb-464d-89fa-ff2ad4424104",
@@ -18853,16 +18855,16 @@
       "hub_zone_count": 3,
       "thin_hub": false,
       "opening_hours": {
-        "monday": "08:00-18:00",
-        "tuesday": "08:00-18:00",
-        "wednesday": "08:00-18:00",
-        "thursday": "08:00-18:00",
-        "friday": "08:00-18:00",
+        "monday": "07:30-18:00",
+        "tuesday": "07:30-18:00",
+        "wednesday": "07:30-18:00",
+        "thursday": "07:30-18:00",
+        "friday": "07:30-18:00",
         "saturday": "08:00-16:00",
         "sunday": "08:00-14:00"
       },
       "hours_confidence": "scraped",
-      "hours_source": "openstreetmap (Builders Express): Mo-Fr 08:00-18:00; Sa 08:00-16:00; Su 08:00-14:00"
+      "hours_source": "openstreetmap (Builders Express): Mo-Fr 07:30-18:00; Sa 08:00-16:00; Su 08:00-14:00"
     },
     {
       "id": "50f2fba3-03d9-4879-a80d-de40f0d63e79",
@@ -28231,15 +28233,14 @@
       "hub_zone_count": 2,
       "thin_hub": true,
       "opening_hours": {
-        "monday": "08:00-17:00",
-        "tuesday": "08:00-17:00",
-        "wednesday": "08:00-17:00",
-        "thursday": "08:00-17:00",
-        "friday": "08:00-17:00",
-        "saturday": "08:00-17:00"
+        "monday": "07:00-17:00",
+        "tuesday": "07:00-17:00",
+        "wednesday": "07:00-17:00",
+        "thursday": "07:00-17:00",
+        "friday": "07:00-17:00"
       },
-      "hours_confidence": "default",
-      "hours_source": "typical offices & coworking hours, unverified"
+      "hours_confidence": "scraped",
+      "hours_source": "openstreetmap (Regal Distributors SA (Pty) Ltd): Mo-Fr 07:00-17:00"
     },
     {
       "id": "923b4db6-d2c9-4231-9584-8c7ae1bb9a6c",
