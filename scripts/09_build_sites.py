@@ -484,7 +484,7 @@ hours, directions and contact details, on one map.</p>
 </div>
 <div class="foot-bottom">
 <span>&copy; 2026 Sandton Index. Map data &copy; OpenStreetMap contributors.</span>
-<span>Hours are indicative &mdash; confirm before travelling.</span>
+<span>Powered by <a href="https://docsonwheels.co.za/" target="_blank" rel="sponsored noopener">Doctors on Wheels</a> &middot; Hours are indicative &mdash; confirm before travelling.</span>
 </div>
 </div></footer>"""
 
@@ -493,9 +493,21 @@ hours, directions and contact details, on one map.</p>
 
 def page(title, description, body, canonical, extra_head=""):
     """Wrap a page body in the shared shell."""
+    gtm_head = """<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NLTQQZ5C');</script>
+<!-- End Google Tag Manager -->"""
+    gtm_body = """<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NLTQQZ5C"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->"""
     return f"""<!doctype html>
 <html lang="en-ZA">
 <head>
+{gtm_head}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title>
@@ -517,6 +529,7 @@ def page(title, description, body, canonical, extra_head=""):
 <link rel="stylesheet" href="{asset_url('sandton.css')}">
 </head>
 <body>
+{gtm_body}
 <a class="skip-link" href="#si-main">Skip to content</a>
 {header_html()}
 <main id="si-main">
