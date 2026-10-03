@@ -18,429 +18,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "GroceryStore", "name": "Checkers", "url": "https://skywalkingzulu1.github.io/sandton-index/checkers/sunninghill-supermarkets/", "address": {"@type": "PostalAddress", "streetAddress": "Johannesburg", "addressLocality": "Sunninghill", "addressRegion": "Gauteng", "addressCountry": "ZA", "postalCode": "2191"}, "telephone": "+27 11 612 3460", "geo": {"@type": "GeoCoordinates", "latitude": -26.032555, "longitude": 28.061831}, "hasMap": "https://www.google.com/maps/dir/?api=1&destination=-26.032555,28.061831", "sameAs": ["https://www.checkers.co.za/store-directory-and-leaflets/store-details/42541"], "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Monday", "opens": "08:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Tuesday", "opens": "08:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Wednesday", "opens": "08:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Thursday", "opens": "08:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Friday", "opens": "08:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Saturday", "opens": "08:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Sunday", "opens": "08:00", "closes": "20:00"}], "areaServed": [{"@type": "City", "name": "Sandton"}, {"@type": "AdministrativeArea", "name": "Sunninghill"}], "priceRange": "R20–R500"}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://skywalkingzulu1.github.io/sandton-index/"}, {"@type": "ListItem", "position": 2, "name": "Supermarkets & Grocers", "item": "https://skywalkingzulu1.github.io/sandton-index/supermarkets/"}, {"@type": "ListItem", "position": 3, "name": "Sunninghill", "item": "https://skywalkingzulu1.github.io/sandton-index/supermarkets/sunninghill/"}, {"@type": "ListItem", "position": 4, "name": "Checkers", "item": "https://skywalkingzulu1.github.io/sandton-index/checkers/sunninghill-supermarkets/"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What time do you open?", "acceptedAnswer": {"@type": "Answer", "text": "Supermarkets in Sandton commonly open between 07:00 and 09:00 on weekdays, earlier on Saturdays. Check the hours shown above, and confirm before travelling if you need something early."}}, {"@type": "Question", "name": "Do you deliver?", "acceptedAnswer": {"@type": "Answer", "text": "Delivery and click-and-collect are common but depend on the store. Calling the number above is the quickest way to find out about a delivery radius and minimum order."}}, {"@type": "Question", "name": "Do you accept card payment?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, most Sandton supermarkets take cards, though some smaller stores have a minimum spend or a small card surcharge."}}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "Offer", "name": "20% off your first online consultation at Doctors on Wheels", "description": "Online or home-visit consultation. New patients only.", "brand": {"@type": "Brand", "name": "Doctors on Wheels"}, "category": "Health care", "url": "https://docsonwheels.co.za/register.html?utm_source=sandton-index&utm_medium=referral&utm_campaign=free-listing&utm_content=SANDTON20", "priceCurrency": "ZAR", "price": "0", "priceSpecification": {"@type": "UnitPriceSpecification", "price": "0", "priceCurrency": "ZAR", "valueAddedTaxIncluded": true}, "discount": {"@type": "Discount", "name": "20% off first consultation", "description": "Use code SANDTON20 at checkout."}, "eligibleRegion": {"@type": "Country", "name": "South Africa"}}</script>
-<style>:root{
---primary:#0052cc;--primary-dark:#0747a6;--primary-darker:#052d6e;
---secondary:#00a3bf;--accent:#36b37e;--accent-dark:#2a8f63;
---text:#1e293b;--muted:#64748b;--border:#e2e8f0;--light:#f8fafc;
---footer:#0f172a;--white:#fff;
---tint-blue:#eef4ff;--tint-green:#e3fcef;--tint-teal:#e6fcff;
---tint-amber:#fff8e1;--amber:#f59e0b;
---shadow-sm:0 1px 3px rgba(0,0,0,.08);
---shadow-md:0 4px 20px rgba(0,0,0,.08);
---shadow-lg:0 10px 40px rgba(0,0,0,.12);
---shadow-glow:0 0 30px rgba(0,82,204,.15);
---r:16px;--r-lg:20px;--r-sm:12px;--r-xs:8px;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;font:16px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",
-Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--white);
--webkit-font-smoothing:antialiased}
-a{color:var(--primary);text-decoration:none}
-a:hover{text-decoration:none}
-.wrap{max-width:1100px;margin:0 auto;padding:0 2rem}
-
-/* ===== NAVBAR (transparent over the gradient hero, solid once scrolled) ===== */
-header.site{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.9);
-backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
-header.site .wrap{display:flex;align-items:center;gap:1rem;
- justify-content:space-between;height:66px;position:relative}
-.brand{font-weight:800;font-size:1.22rem;color:var(--text);letter-spacing:-.5px;
-display:flex;align-items:center;gap:.55rem}
-.brand .mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
-background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;
-font-size:.95rem;box-shadow:0 2px 8px rgba(0,82,204,.3)}
-.brand b{color:var(--primary);font-weight:800}
-nav.site{display:flex;align-items:center;gap:1.9rem}
-nav.site a{color:var(--muted);font-weight:500;font-size:.9rem;
-letter-spacing:.01em;transition:color .2s}
-nav.site a:hover{color:var(--primary)}
-.nav-cta{background:var(--primary);color:#fff!important;padding:.5rem 1.05rem;
-border-radius:var(--r-xs);font-weight:600!important;box-shadow:var(--shadow-sm)}
-.nav-cta:hover{background:var(--primary-dark)}
-
-/* ===== HERO ===== */
-.hero{position:relative;overflow:hidden;
-background:linear-gradient(135deg,var(--primary-darker) 0%,var(--primary-dark) 40%,
-var(--primary) 100%);color:#fff;padding:4.5rem 0 4rem;margin-bottom:-3rem}
-.hero::before{content:'';position:absolute;width:620px;height:620px;border-radius:50%;
-background:radial-gradient(circle,rgba(0,163,191,.28) 0%,transparent 70%);
-top:-180px;right:-160px;animation:blob 17s ease-in-out infinite}
-.hero::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;
-background:radial-gradient(circle,rgba(54,179,126,.20) 0%,transparent 70%);
-bottom:-140px;left:-110px;animation:blob 22s ease-in-out infinite reverse}
-@keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}
-66%{transform:translate(-20px,20px) scale(.95)}}
-.hero-grid{position:absolute;inset:0;pointer-events:none;
-background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);
-background-size:40px 40px}
-.hero .wrap{position:relative;z-index:2}
-.hero h1{margin:0 0 1rem;font-size:clamp(2.1rem,4.6vw,3.5rem);font-weight:900;
-line-height:1.1;letter-spacing:-1.4px;max-width:19ch}
-.hero h1 .grad{background:linear-gradient(135deg,#4fc3f7,#5ce0a0);
--webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{margin:0;color:rgba(255,255,255,.78);font-size:1.05rem;max-width:62ch;
-line-height:1.7}
-.hero-eyebrow{display:inline-flex;align-items:center;gap:.5rem;margin-bottom:1.1rem;
-background:rgba(54,179,126,.15);border:1px solid rgba(54,179,126,.32);
-color:#5ce0a0;padding:.35rem .95rem;border-radius:50px;font-size:.78rem;
-font-weight:600}
-.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:#5ce0a0;
-animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
-/* ===== BREADCRUMB (sits below the hero) ===== */
-.crumb{position:relative;z-index:2;padding-top:3.6rem;font-size:.82rem;
-color:rgba(255,255,255,.62)}
-.crumb a{color:rgba(255,255,255,.8)}
-.crumb a:hover{color:#fff;text-decoration:underline}
-
-/* ===== STAT CARDS (overlap the hero) ===== */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;
-margin:0 0 2.5rem;position:relative;z-index:3}
-.stat{background:#fff;border:1px solid var(--border);border-radius:var(--r);
-padding:1.4rem 1.1rem;text-align:center;box-shadow:var(--shadow-lg);
-transition:transform .3s,box-shadow .3s}
-.stat:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg),var(--shadow-glow)}
-.stat-ico{width:42px;height:42px;border-radius:11px;margin:0 auto .7rem;
-display:grid;place-items:center;font-size:1.05rem}
-.ico-blue{background:var(--tint-blue);color:var(--primary)}
-.ico-green{background:var(--tint-green);color:var(--accent)}
-.ico-teal{background:var(--tint-teal);color:var(--secondary)}
-.ico-amber{background:var(--tint-amber);color:var(--amber)}
-.stat b{display:block;font-size:1.75rem;font-weight:900;line-height:1;
-letter-spacing:-.8px;color:var(--text)}
-.stat span{font-size:.72rem;color:var(--muted);font-weight:700;
-text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem;display:block}
-
-/* ===== SECTIONS ===== */
-h2.sec{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;
-color:var(--muted);font-weight:700;margin:2.4rem 0 1rem;
-display:flex;align-items:center;gap:.6rem}
-h2.sec::after{content:'';flex:1;height:1px;background:var(--border)}
-.badge-cat{display:inline-flex;align-items:center;gap:.4rem;background:var(--tint-blue);
-color:var(--primary);padding:.3rem .85rem;border-radius:50px;font-size:.72rem;
-font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem}
-h1.body{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;letter-spacing:-.7px;
-margin:0 0 .5rem;color:var(--text);line-height:1.15}
-.lede{color:var(--muted);font-size:1.02rem;max-width:64ch;margin:0}
-
-/* ===== GRID + CARDS ===== */
-.grid{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);
-padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:.5rem;
-position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s,border-color .3s}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-background:linear-gradient(90deg,var(--primary),var(--secondary));opacity:0;
-transition:opacity .3s}
-.card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:transparent}
-.card:hover::before{opacity:1}
-.card h3{margin:0;font-size:1.05rem;line-height:1.3;font-weight:700}
-.card h3 a{color:var(--text)}
-.card h3 a:hover{color:var(--primary)}
-.card .meta{font-size:.85rem;color:var(--muted)}
-.card .cat{font-size:.72rem;font-weight:700;color:var(--primary);
-text-transform:uppercase;letter-spacing:.05em}
-.card .acts{margin-top:auto;padding-top:.6rem;display:flex;flex-wrap:wrap;gap:1rem;
-font-size:.85rem;font-weight:600}
-.card .acts a{color:var(--primary)}
-.card .acts a:hover{text-decoration:underline}
-/* buildings below the substance bar: named, mapped, but no page of their own */
-.card .thin{color:var(--muted);font-weight:500;font-size:.82rem}
-
-/* ===== TIER BADGES ===== */
-.badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;
-font-weight:700;letter-spacing:.05em;padding:.28rem .7rem;border-radius:50px;
-text-transform:uppercase}
-.b-a{background:var(--tint-green);color:var(--accent-dark)}
-.b-b{background:var(--tint-blue);color:var(--primary)}
-.b-c{background:#f1f5f9;color:var(--muted)}
-
-/* ===== HOURS ===== */
-.hrs{font-size:.86rem;color:var(--muted)}
-.hrs .row{display:flex;justify-content:space-between;gap:1rem;padding:.12rem 0}
-.hrs .row.today{color:var(--primary);font-weight:700}
-.hrs strong{color:var(--text);display:block;margin-bottom:.35rem;font-size:.8rem;
-text-transform:uppercase;letter-spacing:.06em}
-.notice{background:var(--tint-amber);border:1px solid #fde68a;border-radius:10px;
-padding:.8rem 1rem;font-size:.84rem;color:#92400e;margin-top:.75rem;line-height:1.55}
-.notice strong{color:#78350f}
-
-/* ===== MAP ===== */
-.map{width:100%;height:300px;border:0;border-radius:var(--r);display:block;
-border:1px solid var(--border);box-shadow:var(--shadow-sm)}
-
-/* ===== CTA ===== */
-.cta{background:linear-gradient(135deg,var(--primary-darker) 0%,var(--primary-dark) 50%,
-var(--primary) 100%);color:#fff;border-radius:var(--r);padding:2.6rem 2rem;
-margin:3rem 0 1rem;text-align:center;position:relative;overflow:hidden}
-.cta::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;
-background:radial-gradient(circle,rgba(54,179,126,.16) 0%,transparent 70%);
-top:-180px;right:-90px}
-.cta>*{position:relative;z-index:2}
-.cta h2{color:#fff;margin:0 0 .6rem;font-size:1.45rem;font-weight:800;
-letter-spacing:-.4px}
-.cta p{color:rgba(255,255,255,.75);margin:0 0 1.4rem;font-size:1rem}
-.btn{display:inline-flex;align-items:center;gap:.5rem;background:#fff;
-color:var(--primary);padding:.7rem 1.6rem;border-radius:var(--r-sm);font-weight:700;
-font-size:.92rem;box-shadow:0 4px 20px rgba(0,0,0,.15);transition:transform .25s,
-box-shadow .25s;letter-spacing:.01em}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.22);
- text-decoration:none}
-
-/* ===== FOOTER ===== */
-footer.site{background:var(--footer);color:rgba(255,255,255,.5);
-padding:2.6rem 0 1.6rem;margin-top:3.5rem}
-.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:1.8rem}
-.foot-brand h4{color:#fff;font-size:1.05rem;margin:0 0 .6rem;display:flex;
-align-items:center;gap:.5rem}
-.foot-brand .mark{width:26px;height:26px;border-radius:7px;display:grid;
-place-items:center;background:linear-gradient(135deg,var(--primary),var(--secondary));
-color:#fff;font-size:.8rem}
-.foot-brand p{font-size:.85rem;line-height:1.65;margin:0}
-.foot-col h5{color:#fff;font-size:.72rem;font-weight:700;text-transform:uppercase;
-letter-spacing:.08em;margin:0 0 .9rem}
-.foot-col a{display:block;color:rgba(255,255,255,.5);font-size:.85rem;
-padding:.22rem 0;transition:color .2s}
-.foot-col a:hover{color:#fff}
-.foot-bottom{margin-top:1.8rem;padding-top:1.3rem;
-border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;
-align-items:center;font-size:.78rem;gap:1rem;flex-wrap:wrap}
-
-.empty{color:var(--muted);padding:2rem 0;font-size:.95rem}
-.sib{background:#fff;border:1px solid var(--border);border-radius:var(--r);
-padding:1.1rem 1.3rem;margin-bottom:.7rem;transition:all .3s}
-.sib:hover{box-shadow:var(--shadow-md);transform:translateX(3px)}
-.sib h3{margin:0 0 .25rem;font-size:1rem}
-.sib h3 a{color:var(--text)}
-.sib h3 a:hover{color:var(--primary)}
-.sib .meta{font-size:.84rem;color:var(--muted)}
-
-/* ===== BUSINESS PAGE ===== */
-.hero-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.5rem}
-.biz{padding-top:2rem;padding-bottom:3rem}
-.biz-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.2rem;
- align-items:start;margin-bottom:2.5rem}
-.biz-panel{background:#fff;border:1px solid var(--border);border-radius:var(--r);
- padding:1.6rem 1.8rem}
-.small{font-size:.88rem;color:var(--muted);line-height:1.6}
-.rate{display:inline-flex;align-items:baseline;gap:.4rem;background:var(--tint-amber);
- border:1px solid #f5e2b0;border-radius:99px;padding:.3rem .8rem;
- margin-left:.5rem;vertical-align:middle;white-space:nowrap}
-.rate-stars{color:#f59e0b;font-size:.9rem;line-height:1}
-.rate-num{font-weight:800;color:var(--text);font-size:.92rem}
-.rate-rev{font-size:.78rem;color:var(--muted)}
-.rate-src{font-size:.72rem;color:var(--muted);opacity:.85}
-.kit-flag{display:block;font-size:.8rem;color:var(--muted);line-height:1.6;
- margin-top:.7rem;flex-basis:100%}
-.conflict{background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--r);
- padding:.7rem .9rem;font-size:.83rem;color:#7c2d12;line-height:1.6;
- margin-top:.9rem}
-
-/* ===== LIVE STATUS PILL =====
-   Rendered ONLY from scraped hours. No hours evidence, no pill. */
-.pill{display:inline-flex;align-items:center;gap:.4rem;margin-left:.6rem;
- padding:.22rem .7rem;border-radius:99px;font-size:.72rem;font-weight:700;
- letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
-.pill .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.pill-open{background:var(--tint-green);color:#0f5132;border:1px solid #bbf0d4}
-.pill-open .dot{background:var(--accent-dark);animation:pulse 2s ease-in-out infinite}
-.pill-closed{background:#f1f5f9;color:#475569;border:1px solid var(--border)}
-.pill-closed .dot{background:#94a3b8}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
-/* ===== DOW HEALTH MODULE ===== */
-.dow-card{margin:2.5rem 0;padding:1.8rem;border-radius:var(--r-lg);
- background:linear-gradient(150deg,#f0fdf4 0%,#e8f6f1 55%,#e6f4f7 100%);
- border:1px solid #c7ead9}
-.dow-kicker{margin:0 0 .4rem;font-size:.68rem;text-transform:uppercase;
- letter-spacing:.12em;font-weight:800;color:var(--accent-dark)}
-.dow-card .sec{margin:0 0 .6rem}
-.dow-body{font-size:.92rem;line-height:1.7;color:var(--text);max-width:62ch;
- margin:0 0 1.1rem}
-.dow-pending{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-sm);
- padding:.6rem .8rem;font-size:.8rem;color:#78350f;line-height:1.6;
- margin:0 0 1.1rem;max-width:62ch}
-
-/* ===== PROPERTY PORTAL ===== */
-.portal{margin:2.5rem 0;padding:1.8rem;border-radius:var(--r-lg);
- background:var(--tint_blue);border:1px solid #cfe0f7}
-.portal .sec{margin-top:0}
-.portal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
- gap:1.2rem}
-.portal-block{background:#fff;border:1px solid #dbe9f6;border-radius:var(--r);
- padding:1.1rem 1.3rem}
-.portal-block h3{margin:0 0 .5rem;font-size:.98rem;color:var(--primary-darker)}
-.portal-list{list-style:none;padding:0;margin:0}
-.portal-list li{display:flex;justify-content:space-between;gap:1rem;
- padding:.4rem 0;border-bottom:1px solid var(--light);font-size:.86rem}
-.portal-list li:last-child{border-bottom:0}
-.portal-list li span{color:var(--muted);font-size:.8rem;white-space:nowrap}
-.chips{list-style:none;padding:0;margin:1rem 0;display:flex;flex-wrap:wrap;
- gap:.5rem}
-.chips li a{display:inline-block;background:var(--light);border:1px solid var(--border);
- color:var(--primary-dark);padding:.4rem .85rem;border-radius:99px;
- font-size:.85rem;font-weight:600;transition:all .2s}
-.chips li a:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
-.nearme{margin-top:.9rem;font-size:.86rem;color:rgba(255,255,255,.78);
- font-weight:500}
-.nearme::before{content:"F4CD ";opacity:.9}
-.faqs{display:grid;gap:.6rem;max-width:820px}
-details.faq{background:#fff;border:1px solid var(--border);border-radius:var(--r);
- padding:.9rem 1.2rem}
-details.faq summary{font-weight:600;cursor:pointer;font-size:.95rem;
- list-style:none;position:relative;padding-right:1.6rem}
-details.faq summary::-webkit-details-marker{display:none}
-details.faq summary::after{content:"+";position:absolute;right:0;top:0;
- color:var(--primary);font-weight:700;font-size:1.2rem;line-height:1.1}
-details.faq[open] summary::after{content:"2"}
-details.faq p{margin:.7rem 0 0;font-size:.9rem;color:var(--muted);line-height:1.65}
-
-/* ===== GOOGLE MAPS KIT ===== */
-.maps-kit{margin:3rem 0;padding:2.2rem;border-radius:var(--r-lg);
- background:linear-gradient(160deg,#f0f7ff 0%,#e6f4f7 100%);
- border:1px solid #cfe3f5}
-.maps-kit .sec{margin-top:0}
-.kit-lead{font-size:1rem;color:var(--text);max-width:64ch;margin:0 0 1.6rem}
-.kit-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem}
-.kit-card{background:#fff;border:1px solid #dbe9f6;border-radius:var(--r);
- padding:1.3rem 1.5rem}
-.kit-card h3{margin:0 0 .5rem;font-size:1rem;color:var(--primary-darker)}
-.kit-note{font-size:.83rem;color:var(--muted);line-height:1.6;margin:0 0 .8rem}
-.kit-pick{background:var(--primary);color:#fff;padding:.6rem .9rem;
- border-radius:var(--r-sm);font-weight:700;font-size:.92rem;margin:0 0 .9rem}
-.kit-pick span{display:block;font-size:.68rem;text-transform:uppercase;
- letter-spacing:.09em;opacity:.82;font-weight:700}
-.kit-extra-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;
- color:var(--muted);font-weight:700;margin:0 0 .35rem}
-.kit-extra{list-style:none;padding:0;margin:0}
-.kit-extra li{font-size:.85rem;color:var(--text);padding:.16rem 0 .16rem .9rem;
- position:relative}
-.kit-extra li::before{content:"";position:absolute;left:0;top:.62rem;width:4px;
- height:4px;border-radius:50%;background:var(--accent)}
-.kit-nap{background:var(--light);border:1px dashed var(--border);padding:.7rem .9rem;
- border-radius:var(--r-sm);font-size:.86rem;line-height:1.6;margin:0 0 .9rem;
- user-select:all}
-.kit-hours-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;
- color:var(--muted);font-weight:700;margin:0 0 .3rem}
-.kit-hours{background:var(--light);border:1px dashed var(--border);padding:.7rem .9rem;
- border-radius:var(--r-sm);font-size:.83rem;line-height:1.85;margin:0 0 .8rem}
-.kit-hours b{color:var(--primary-darker);min-width:4.4rem;display:inline-block}
-.kit-cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.5rem}
-/* secondary/outline variant, always on a light surface */
-.btn-2{background:#fff;color:var(--primary-dark);border:1px solid var(--primary)}
-.btn-2:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
-
-/* ===== COUPON ===== */
-.coupon{margin:3rem 0 0;padding:1.7rem;border-radius:var(--r-lg);
- background:linear-gradient(135deg,var(--primary-darker) 0%,var(--primary-dark) 55%,
- var(--primary) 100%);color:#fff}
-.coupon-in{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
-.coupon-mark{font-size:2.5rem;font-weight:900;line-height:1;flex-shrink:0;
- background:rgba(255,255,255,.13);padding:.9rem 1.1rem;border-radius:var(--r)}
-.coupon-mark span{font-size:1.4rem;vertical-align:super}
-.coupon-body{flex:1;min-width:250px}
-.coupon-kicker{margin:0 0 .3rem;font-size:.68rem;text-transform:uppercase;
- letter-spacing:.12em;font-weight:700;color:var(--accent);opacity:.95}
-.coupon-body h3{margin:0 0 .35rem;font-size:1.2rem;color:#fff}
-.coupon-note{margin:0;font-size:.87rem;opacity:.9;line-height:1.6}
-.coupon-code{background:rgba(255,255,255,.18);padding:.1rem .5rem;
- border-radius:4px;letter-spacing:.06em}
-.coupon .btn{background:#fff;color:var(--primary-darker);flex-shrink:0}
-.coupon .btn:hover{background:var(--accent);color:#fff}
-.coupon-sm{padding:1.2rem 1.4rem;margin-top:2rem}
-.coupon-sm .coupon-mark{font-size:1.8rem;padding:.7rem .85rem}
-.coupon-sm .coupon-body h3{font-size:1.02rem}
-.coupon-strip{background:var(--primary-darker);color:#fff;padding:.85rem 0;
- border-top:1px solid rgba(255,255,255,.12)}
-.coupon-strip .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem}
-.coupon-strip-tag{background:var(--accent);color:#04241a;font-size:.62rem;
- text-transform:uppercase;letter-spacing:.11em;font-weight:800;padding:.24rem .5rem;
- border-radius:3px;flex-shrink:0}
-.coupon-strip-offer{font-size:.88rem;font-weight:600}
-.coupon-strip-code{font-size:.82rem;opacity:.8}
-.coupon-strip-code b{background:rgba(255,255,255,.16);padding:.1rem .42rem;
- border-radius:3px;letter-spacing:.05em}
-.coupon-strip-go{margin-left:auto;font-size:.82rem;font-weight:700;color:#fff;
- text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px;
- white-space:nowrap}
-.coupon-strip-go:hover{color:var(--accent)}
-@media(max-width:900px){.coupon-strip-go{margin-left:0}}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:900px){
-.biz-grid,.kit-grid{grid-template-columns:1fr}
-.coupon-in{flex-direction:column;align-items:flex-start}
-.coupon .btn{width:100%}
-}
-.foot-grid{grid-template-columns:1fr 1fr}
-}
-@media(max-width:720px){
-nav.site{gap:.8rem}
-nav.site a:not(.nav-cta){display:none}
-nav.site.open{display:flex;flex-direction:column;align-items:stretch;gap:0;
- position:absolute;top:66px;left:0;right:0;background:#fff;
- border-bottom:1px solid var(--border);box-shadow:var(--shadow-md);padding:.5rem}
-nav.site.open a:not(.nav-cta){display:block;padding:.75rem 1.25rem;color:var(--text);
- font-size:.95rem}
-nav.site.open a:not(.nav-cta):hover{background:var(--light);color:var(--primary)}
-.nav-toggle{display:block}
-.wrap{padding:0 1.25rem}
-.grid{grid-template-columns:1fr}
-.foot-grid{grid-template-columns:1fr}
-.foot-bottom{flex-direction:column;text-align:center}
-.hero{padding:3.2rem 0 3rem}
-}
-@media(max-width:480px){
-.stats{grid-template-columns:1fr}
-.btn{width:100%;max-width:290px;justify-content:center}
-nav.site .nav-cta{padding:.45rem .85rem;font-size:.85rem}
-.finder{padding:.6rem .75rem}
-}
-/* ===== MOBILE NAV TOGGLE =====
-   Previously every nav link was display:none under 720px, leaving a header
-   with a single orphaned button and no way to reach Categories or Suburbs. */
-.nav-toggle{display:none;background:transparent;border:1px solid var(--border);
- border-radius:var(--r-xs);padding:.4rem .55rem;cursor:pointer;line-height:0;
- color:var(--text)}
-.nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{display:block;
- width:19px;height:2px;background:currentColor;border-radius:2px;
- transition:transform .25s,opacity .2s}
-.nav-toggle span::before{content:'';transform:translateY(-6px)}
-.nav-toggle span::after{content:'';transform:translateY(4px)}
-.nav-toggle[aria-expanded="true"] span{background:transparent}
-.nav-toggle[aria-expanded="true"] span::before{transform:rotate(45deg)}
-.nav-toggle[aria-expanded="true"] span::after{transform:rotate(-45deg)}
-
-/* ===== FINDER (client-side filter) =====
-   Progressive enhancement only. Every card is server-rendered and visible
-   with JS off; the script merely hides non-matching cards. */
-.finder{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin:0 0 1.4rem;
- background:#fff;border:1px solid var(--border);border-radius:var(--r);
- padding:.7rem .9rem;box-shadow:var(--shadow-sm);position:relative;z-index:3}
-.finder input[type=search]{flex:1;min-width:220px;border:0;outline:0;font:inherit;
- font-size:.98rem;color:var(--text);background:transparent;padding:.35rem .2rem}
-.finder input[type=search]::-webkit-search-cancel-button{cursor:pointer}
-.si-count{font-size:.8rem;color:var(--muted);font-weight:600;white-space:nowrap}
-.si-none{background:var(--tint-amber);border:1px solid #fde68a;border-radius:10px;
- padding:.5rem .8rem;font-size:.85rem;color:#92400e;line-height:1.6;flex-basis:100%}
-/* display:grid and display:flex both beat the UA [hidden] rule, so an
-   emptied section would stay visible without these two lines */
-.grid[hidden],h2.sec[hidden]{display:none}
-
-@media(prefers-reduced-motion:reduce){
- *{animation:none!important;transition:none!important}
- .nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{transition:none}
- html{scroll-behavior:auto}
-}</style>
+<link rel="preload" as="style" href="https://skywalkingzulu1.github.io/sandton-index/assets/sandton.css?v2">
+<link rel="stylesheet" href="https://skywalkingzulu1.github.io/sandton-index/assets/sandton.css?v2">
 </head>
 <body>
+<a class="skip-link" href="#si-main">Skip to content</a>
 <header class="site"><div class="wrap">
 <a class="brand" href="https://skywalkingzulu1.github.io/sandton-index/"><span class="mark">SI</span>
 <span>Sandton <b>Index</b></span></a>
 <nav class="site" id="si-nav">
 <a href="https://skywalkingzulu1.github.io/sandton-index/">Home</a>
+<a href="https://skywalkingzulu1.github.io/sandton-index/search/">Search</a>
 <a href="https://skywalkingzulu1.github.io/sandton-index/categories/">Categories</a>
 <a href="https://skywalkingzulu1.github.io/sandton-index/zones/">Suburbs</a>
 <a href="https://skywalkingzulu1.github.io/sandton-index/intents/">Near me</a>
@@ -450,12 +38,13 @@ nav.site .nav-cta{padding:.45rem .85rem;font-size:.85rem}
  aria-expanded="false" aria-controls="si-nav" aria-label="Open menu">
 <span></span></button>
 </div></header>
+<main id="si-main">
 <div class="hero"><div class="hero-grid"></div><div class="wrap">
 <div class="crumb"><a href="https://skywalkingzulu1.github.io/sandton-index/">Home</a> /
 <a href="https://skywalkingzulu1.github.io/sandton-index/supermarkets/sunninghill/">Supermarkets &amp; Grocers</a> / Checkers</div>
 <div class="hero-eyebrow"><span class="dot"></span>
 Supermarket &middot; Sunninghill
-<span class="pill pill-closed"><span class="dot"></span>Closed now &middot; opens 08:00</span></div>
+<span class="pill pill-open"><span class="dot"></span>Open now &middot; closes 20:00</span></div>
 <h1>Checkers</h1>
 <p>Sunninghill, 2191.</p>
 <div class="hero-actions"><a class="btn" href="tel:+27116123460">Call +27 11 612 3460</a><a class="btn btn-2" href="https://www.google.com/maps/dir/?api=1&destination=-26.032555,28.061831" target="_blank" rel="noopener">Directions</a><a class="btn btn-2" href="https://www.checkers.co.za/store-directory-and-leaflets/store-details/42541" target="_blank" rel="noopener">Visit website</a></div>
@@ -575,6 +164,7 @@ rel="sponsored noopener">Get the discount</a>
 </div>
 </section>
 </div>
+</main>
 <div class="coupon-strip">
 <div class="wrap">
 <span class="coupon-strip-tag">Sponsored</span>
@@ -593,6 +183,7 @@ hours, directions and contact details, on one map.</p>
 </div>
 <div class="foot-col">
 <h5>Browse</h5>
+<a href="https://skywalkingzulu1.github.io/sandton-index/search/">Search</a>
 <a href="https://skywalkingzulu1.github.io/sandton-index/categories/">All categories</a>
 <a href="https://skywalkingzulu1.github.io/sandton-index/zones/">All suburbs</a>
 <a href="https://skywalkingzulu1.github.io/sandton-index/supermarkets/">Supermarkets</a>
@@ -616,50 +207,5 @@ hours, directions and contact details, on one map.</p>
 <span>Hours are indicative &mdash; confirm before travelling.</span>
 </div>
 </div></footer>
-<script>(function(){
-var b=document.getElementById("si-nav-toggle");
-if(b){
- var n=document.getElementById("si-nav");
- b.addEventListener("click",function(){
-  var open=n.className.indexOf("open")>-1;
-  n.className=open?"site":"site open";
-  b.setAttribute("aria-expanded",open?"false":"true");
- });
-}
-function bind(input){
- var sel=input.getAttribute("data-target");
- var root=sel?document.getElementById(sel):document;
- if(!root)return;
- var cards=root.querySelectorAll(".card");
- var grids=root.querySelectorAll(".grid");
- var box=input.parentNode;
- var cnt=box.querySelector(".si-count");
- var hint=box.querySelector(".si-none");
- var run=function(){
-  var s=input.value.trim().toLowerCase();
-  var shown=0;
-  for(var i=0;i<cards.length;i++){
-   var hit=s===""||cards[i].textContent.toLowerCase().indexOf(s)>-1;
-   cards[i].style.display=hit?"":"none";
-   if(hit)shown=shown+1;
-  }
-  if(cnt)cnt.textContent=cards.length?shown+" of "+cards.length+" shown":"";
-  if(hint)hint.hidden=shown!==0;
-  for(var g=0;g<grids.length;g=g+1){
-   var kids=grids[g].querySelectorAll(".card");
-   var any=false;
-   for(var k=0;k<kids.length;k=k+1){
-    if(kids[k].style.display!=="none")any=true;
-   }
-   grids[g].hidden=!any;
-   var hd=grids[g].previousElementSibling;
-   if(hd&&hd.tagName==="H2")hd.hidden=!any;
-  }
- };
- input.addEventListener("input",run);
- run();
-}
-var qs=document.querySelectorAll(".si-q");
-for(var z=0;z<qs.length;z=z+1)bind(qs[z]);
-})();</script>
+<script defer src="https://skywalkingzulu1.github.io/sandton-index/assets/sandton.js?v2"></script>
 </body></html>
