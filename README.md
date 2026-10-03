@@ -46,37 +46,90 @@ as the record name, within 150m.
 ## Pipeline
 
 ```bash
+python scripts/build_all.py                  # everything, in order
+```
+
+Or one stage at a time while iterating:
+
+```bash
 python scripts/07_classify_and_group.py   # tier, hub, branch grouping
 python scripts/08_harvest_hours.py        # OSM hours + category defaults
+python scripts/13_harvest_properties.py   # OSM complexes
+python scripts/15_harvest_cadastral.py    # Council for Geoscience parcels
 python scripts/09_build_sites.py          # generate site/
 python scripts/verify_build.py            # gate; exits 1 on unsafe output
 ```
 
-Output: `site/` (767 pages, ~12 MB) and `data/businesses.json`.
+The three harvest stages query free public endpoints that are frequently
+overloaded, so `build_all.py` treats them as non-blocking: a failure warns and
+the build continues on whatever is cached on disk.
+
+## Build inputs
+
+The stylesheet and script are **source files, not strings in the generator**.
+`09_build_sites.py` copies them into `site/assets/` on every build and links
+them from every page.
+
+```
+scripts/assets/sandton.css        design system -> site/assets/sandton.css
+scripts/assets/sandton.js         behaviour     -> site/assets/sandton.js
+```
+
+This replaced roughly 15 KB of CSS inlined into each of 860 pages, which had
+made the output 33 MB for 13 MB of content. One cacheable file is fetched once
+per visitor, and a design change is one edit rather than 860 near-identical
+diffs.
+
+Neither asset is required to read the site. Every card, listing and opening
+hour is server-rendered; the script only hides and reveals.
+
+### Tests
+
+```bash
+python scripts/test_css_coverage.py     # every emitted class has a rule
+node    scripts/test_search_js.js       # ranking ladder + escaping
+node    scripts/test_search_render.js   # the real render path, via jsdom
+```
+
+`test_css_coverage.py` exists because the stylesheet is hand-written while the
+markup is generated: nothing else notices when the two drift apart, and the
+symptom is one unstyled component on one page type.
+
+The two Node tests need `jsdom` (`npm i -D jsdom`) for the render test only.
+`build_all.py` skips both when `node` is not on `PATH` -- the site itself has no
+JavaScript toolchain requirement.
 
 ## Structure
 
 ```
-scripts/config.py              taxonomy, chain guard, hours defaults
+scripts/config.py                 taxonomy, chain guard, hours defaults
 scripts/07_classify_and_group.py  tier + hub + branch + URL assignment
-scripts/08_harvest_hours.py     OSM hours harvest, name-verified matching
-scripts/09_build_sites.py       page templates
-scripts/verify_build.py         publish gate
-data/businesses.json            enriched dataset
-data/chain_report.csv           guard reclassifications, for review
-site/                           generated output
+scripts/08_harvest_hours.py       OSM hours harvest, name-verified matching
+scripts/13_harvest_properties.py  OSM complexes via the /map API
+scripts/15_harvest_cadastral.py   Council for Geoscience Erf layer
+scripts/09_build_sites.py         page generators
+scripts/assets/                   design system + behaviour (build inputs)
+scripts/verify_build.py           publish gate
+scripts/build_all.py              ordered pipeline
+data/businesses.json              enriched dataset
+data/chain_report.csv             guard reclassifications, for review
+site/                             generated output (gitignored)
 ```
 
 ## Page types
 
 | Type | URL | Ranks for | Purpose |
 |---|---|---|---|
+| Search | `/search/` | brand + category queries | Client-side index over all listings |
 | Hub | `/{category}/{suburb}/` | "supermarket sandton" | Traffic + lead list |
 | Brand/category index | `/{category}/` | "sandton supermarkets" | Suburb picker |
 | Business | `/{brand}/` | long-tail branded | Free page, Maps, hours |
 | Chain branch | `/{brand}/{suburb}-{category}/` | "woolworths sandton hours" | NAP + hours, no pitch |
+| Property | `/properties/{complex}/` | "apartments for sale sandton" | Building, class, area |
 
 Subdirectory URLs only -- one repo, one build, no per-client DNS.
+
+Output: `site/` (859 pages, ~14 MB) and `data/businesses.json`.
 
 ## Publishing
 
@@ -91,35 +144,56 @@ Pages project URL, the only host this is known to serve on.
 domain**; it made every internal link a dead redirect, so it is no longer
 referenced anywhere in the output.
 
-To publish on a real domain, set the `SANDTON_SITE_URL` repository variable
-(the deploy workflow reads it) or override per build:
+To publish on a real domain, override per build:
 
 ```bash
 SANDTON_SITE_URL=https://yourdomain.co.za python scripts/09_build_sites.py
 ```
 
-`.github/workflows/deploy.yml` builds and deploys to GitHub Pages on push to
-`main`. It runs `verify_build.py` before publishing and fails the deploy if
-any check trips.
+Publishing is done by `scripts/publish_pages.py`, which builds, runs the gate,
+and pushes `site/` to the `gh-pages` branch:
+
+```bash
+python scripts/publish_pages.py              # build, verify, publish, wait
+python scripts/publish_pages.py --no-build   # republish site/ as-is
+```
+
+**There is deliberately no GitHub Actions workflow.** Pushing anything under
+`.github/workflows/` requires the OAuth token to carry the `workflow` scope,
+which a stock `gh auth login` does not grant, so the workflow could not be
+pushed at all. Publishing from a branch needs only `repo` scope. An earlier
+version of this README claimed `deploy.yml` existed and gated deploys; it never
+did. The gate is real, it just runs locally before the push rather than on the
+server.
 
 ## Design
 
 The visual language is taken from [docsonwheels.co.za](https://docsonwheels.co.za)
-so the index reads as part of the same family:
+so the index reads as part of the same family. The tokens live at the top of
+`scripts/assets/sandton.css`:
 
 | Token | Value | Use |
 |---|---|---|
-| `--primary` | `#0052cc` | Links, brand, structure |
-| `--primary-darker` | `#052d6e` | Gradient hero / CTA |
-| `--secondary` | `#00a3bf` | Gradient accent, informational |
-| `--accent` | `#36b37e` | "Open / confirmed / no website yet" |
+| `--brand-700` | `#0052cc` | Links, brand, structure |
+| `--brand-900` | `#052d6e` | Gradient hero / CTA |
+| `--teal` | `#00a3bf` | Gradient accent, informational |
+| `--green` | `#36b37e` | "Open / confirmed / no website yet" |
 | `--text` / `--muted` | `#1e293b` / `#64748b` | Copy hierarchy |
 | `--border` | `#e2e8f0` | Card and divider lines |
 
-Inter (400–900), 16px cards, 12px buttons, a 135° gradient hero with dot grid
-and drifting radial blobs, and stat cards that overlap the hero edge. The
-amber "typical hours" notice deliberately breaks the blue/green family so an
-unverified claim never looks like a verified one.
+Inter (400-900), 16px cards, 12px buttons, a 135 degree gradient hero with a
+masked dot grid and drifting radial blobs, and stat cards that overlap the
+hero edge. The amber "typical hours" notice deliberately breaks the blue/green
+family so an unverified claim never looks like a verified one.
+
+Beyond the original design:
+
+- **Dark mode** via `prefers-color-scheme`, so the tokens have two definitions
+- **`:focus-visible` rings** -- the site is keyboard-navigable end to end
+- **A skip link** to the main content
+- **Print styles** -- chrome drops out and every URL is spelled out
+- **`prefers-reduced-motion`** disables the drifting hero blobs and every
+  transition
 
 ## Data quality
 
@@ -129,6 +203,13 @@ Known gaps in the source data, not fixed by this pipeline:
 - `postcode` present on 47%
 - 44 businesses have no hours at all and no category default
 - 79 category x suburb combinations are too thin to publish as near-me pages
+
+**Health categories are effectively absent.** "Health & Wellness" holds 14
+records and there are no dentists, doctors or clinics in the dataset at all,
+so a search for "dentist" returns nothing. This is an upstream harvest gap,
+not a search defect; the search page says so plainly and points at the nearest
+section rather than inventing a near miss. `scripts/test_search_render.js`
+asserts the gap so that a later harvest which closes it is noticed.
 
 Hours coverage is the weakest field and the highest-leverage one to improve.
 Adding a Google Places key (`GOOGLE_MAPS_API_KEY`) would raise real coverage

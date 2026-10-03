@@ -26,7 +26,7 @@ import sys
 from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DATA, MIN_HUB_LISTINGS, SITE  # noqa: E402
+from config import DATA, MIN_HUB_LISTINGS, SITE, SITE_URL  # noqa: E402
 from data_overlay import load_overlay  # noqa: E402
 
 LD_RE = re.compile(
@@ -35,6 +35,7 @@ LINK_RE = re.compile(r'href="(/[^"#?]*)/?"')
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.S)
 DESC_RE = re.compile(r'name="description" content="(.*?)"')
 CANON_RE = re.compile(r'rel="canonical" href="(.*?)"')
+SITE_URL_PREFIX = SITE_URL.rstrip("/") + "/"
 
 
 def collect_pages():
@@ -273,7 +274,11 @@ def main():
     for p in pages:
         with open(p, encoding="utf-8") as fh:
             html = fh.read()
-        body = html.split("</style>")[-1]
+        # Scan the rendered body only. This used to split on "</style>",
+        # which only worked while the stylesheet was inlined; with the CSS
+        # externalised there is no "</style>" to split on and the whole
+        # document, metadata included, would have been scanned as prose.
+        body = html.split("</head>")[-1]
 
         # 1. A live open/closed pill is a factual claim about whether a real
         #    business is trading right now. It may only appear where we hold
@@ -463,7 +468,7 @@ def main():
         prop_pages += 1
         with open(p, encoding="utf-8") as fh:
             html = fh.read()
-        body = html.split("</style>")[-1]
+        body = html.split("</head>")[-1]
         for pattern, label in FORBIDDEN:
             # finditer, not search: the page's own disclaimer names these
             # terms ("unit numbers, occupancy, amenities ... are not
@@ -496,6 +501,63 @@ def main():
                         f"without the disclaimer, e.g. {prop_tenancy[:3]}")
     if prop_pages:
         notes.append(f"property pages checked: {prop_pages}")
+
+    # --- 7. assets ------------------------------------------------------
+    # The stylesheet and script are build inputs copied into site/assets/.
+    # A page that links a file which is not there renders unstyled or inert,
+    # and nothing else in this script would notice.
+    asset_faults = []
+    for name in ("sandton.css", "sandton.js"):
+        if not os.path.exists(os.path.join(SITE, "assets", name)):
+            asset_faults.append(f"site/assets/{name} was not emitted")
+
+    unstyled = [os.path.relpath(p, SITE) for p in pages
+                if 'sandton.css' not in open(p, encoding="utf-8").read()]
+    if unstyled:
+        asset_faults.append(f"{len(unstyled)} pages do not link the stylesheet, "
+                            f"e.g. {unstyled[:3]}")
+    if asset_faults:
+        failures.extend(asset_faults)
+
+    # Re-inlining the stylesheet would put ~15 KB back into every page. It is
+    # cheap to do by accident and expensive to notice, so it is a failure.
+    inlined = [os.path.relpath(p, SITE) for p in pages
+               if "<style>" in open(p, encoding="utf-8").read()]
+    if inlined:
+        failures.append(f"{len(inlined)} pages inline a <style> block instead "
+                        f"of linking the stylesheet, e.g. {inlined[:3]}")
+
+    # --- 8. search page -------------------------------------------------
+    # The homepage has advertised a SearchAction at /search/?q= in its
+    # JSON-LD since the first build. Google follows that promise, so the page
+    # has to exist and its index has to cover every record.
+    search_html = os.path.join(SITE, "search", "index.html")
+    if not os.path.exists(search_html):
+        failures.append("/search/ is missing but JSON-LD advertises a "
+                        "SearchAction pointing at it")
+    else:
+        with open(search_html, encoding="utf-8") as fh:
+            shtml = fh.read()
+        if "si-search-form" not in shtml:
+            failures.append("/search/ has no search form, so the SearchAction "
+                            "resolves to a page that cannot search")
+
+        idx_path = os.path.join(SITE, "assets", "search-index.json")
+        if not os.path.exists(idx_path):
+            failures.append("/assets/search-index.json missing, so /search/ "
+                            "cannot return results")
+        else:
+            with open(idx_path, encoding="utf-8") as fh:
+                idx = json.load(fh)
+            if len(idx) != len(records):
+                failures.append(f"search index holds {len(idx)} entries for "
+                                f"{len(records)} records")
+            missing_rec = [r["name"] for r in records
+                           if f"{r['path']}/" not in
+                           {e["u"].split(SITE_URL_PREFIX)[-1] for e in idx}]
+            if missing_rec:
+                failures.append(f"{len(missing_rec)} records absent from the "
+                                f"search index, e.g. {missing_rec[:3]}")
 
     # --- report ---------------------------------------------------------
     print("=" * 62)

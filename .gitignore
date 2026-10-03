@@ -39,3 +39,7 @@ data/_cadastral_cache/
 # 15_harvest_cadastral.py. Responses are cached in data/_cadastral_cache,
 # so a re-run is cheap and works offline. Not worth 3.8 MB of history.
 data/cadastral_index.json
+
+# Node modules, only present if you install jsdom to run
+# scripts/test_search_render.js. The site itself has no JS build step.
+node_modules/
