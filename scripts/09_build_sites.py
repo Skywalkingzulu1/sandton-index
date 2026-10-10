@@ -473,6 +473,7 @@ hours, directions and contact details, on one map.</p>
 <h5>For business</h5>
 <a href="{SITE_URL}/needs-a-website/">Get a free listing</a>
 <a href="{SITE_URL}/hours-not-published/">Publish your hours</a>
+<a href="{SITE_URL}/dashboard/">No-website dashboard</a>
 </div>
 <div class="foot-col">
 <h5>Sandton</h5>
@@ -484,7 +485,7 @@ hours, directions and contact details, on one map.</p>
 </div>
 <div class="foot-bottom">
 <span>&copy; 2026 Sandton Index. Map data &copy; OpenStreetMap contributors.</span>
-<span>Powered by <a href="https://docsonwheels.co.za/" target="_blank" rel="sponsored noopener">Doctors on Wheels</a> &middot; Hours are indicative &mdash; confirm before travelling.</span>
+<span>Part of the <a href="https://skywalkingzulu1.github.io/gauteng-index/">Gauteng Index</a> &middot; Hours are indicative &mdash; confirm before travelling.</span>
 </div>
 </div></footer>"""
 
@@ -1227,6 +1228,149 @@ do.</p>
                extra_head=schema_site()))
 
 
+def _norm_place(s):
+    return "".join(c for c in str(s or "").lower() if c.isalnum())
+
+
+def build_dashboard(records):
+    """The no-website dashboard: every tier-A business plus Gauteng coverage.
+
+    Tier A means the source data carries no website for the record -- the
+    businesses this directory can offer a free page to. The grid reuses the
+    .finder/.card pattern so the client-side filter works with no new
+    JavaScript, and every card links to the business page that already
+    exists (verify check 2 covers those links like any others).
+
+    The Gauteng section reads data/gauteng_suburbs.json when the harvest
+    has run. District assignment needs OSM boundary geometry, which the
+    public mirrors only serve intermittently; until that fetch succeeds the
+    suburbs are listed unassigned rather than guessed into districts.
+    """
+    tier_a = sorted((r for r in records if r["tier"] == "A"),
+                    key=lambda r: r["name"].lower())
+    with_phone = sum(1 for r in tier_a if r.get("phone"))
+    hubs_hit = sorted({r["hub_title"] for r in tier_a})
+    zones_hit = sorted({r["zone_display"] for r in tier_a})
+
+    cards = "".join(
+        f"""<article class="card">
+<h3><a href="{SITE_URL}/{e(r['path'])}/">{e(r['name'])}</a></h3>
+<div class="meta">{e(r['hub_title'])} &middot; {e(r['zone_display'])}</div>
+""" + (f"<div class=\"meta\">Phone {e(r['phone'])}</div>"
+        if r.get("phone") else "") + f"""
+<div class="acts"><a href="{SITE_URL}/{e(r['path'])}/">View the page &rarr;</a></div>
+</article>""" for r in tier_a)
+
+    gpath = os.path.join(DATA, "gauteng_suburbs.json")
+    coverage = ""
+    # District slugs live in the gauteng-index repo (scripts/build.py,
+    # DISTRICTS). They are repeated here so dashboard cards can link out;
+    # if they ever drift, the links below are absolute and the breakage
+    # is visible, not silent.
+    GAUTENG_DISTRICT_SLUGS = {
+        "City of Johannesburg Metropolitan Municipality":
+            "city-of-johannesburg-metropolitan-municipality",
+        "City of Ekurhuleni Metropolitan Municipality":
+            "city-of-ekurhuleni-metropolitan-municipality",
+        "City of Tshwane Metropolitan Municipality":
+            "city-of-tshwane-metropolitan-municipality",
+        "Sedibeng District Municipality": "sedibeng-district-municipality",
+        "West Rand District Municipality": "west-rand-district-municipality",
+    }
+    GAUTENG_URL = "https://skywalkingzulu1.github.io/gauteng-index"
+    try:
+        with open(gpath, encoding="utf-8") as fh:
+            gdata = json.load(fh)
+        suburbs = gdata.get("suburbs", [])
+    except (OSError, ValueError):
+        suburbs = []
+    if suburbs:
+        indexed_names = {_norm_place(r["zone_display"]) for r in records}
+        by_district = defaultdict(list)
+        for s in suburbs:
+            by_district[s.get("district") or ""].append(s)
+        dcards = ""
+        for district in sorted(by_district):
+            subs = by_district[district]
+            matched = sum(1 for r in records
+                          if _norm_place(r["zone_display"]) in
+                          {_norm_place(s["name"]) for s in subs})
+            label = district if district else \
+                "District assignment pending"
+            if district:
+                note = (f"{matched} Sandton businesses indexed here")
+            else:
+                note = (f"{matched} Sandton businesses name-matched here "
+                        f"· district boundaries still being fetched from "
+                        f"OpenStreetMap")
+            if district in GAUTENG_DISTRICT_SLUGS:
+                slug = GAUTENG_DISTRICT_SLUGS[district]
+                acts = (f'<div class="acts"><a href="{GAUTENG_URL}/districts/'
+                        f'{slug}/">Open district &rarr;</a></div>')
+            else:
+                acts = ""
+            dcards += (f"""<article class="card">
+<div class="cat">{len(subs)} suburbs mapped</div>
+<h3>{e(label)}</h3>
+<div class="meta">{note}</div>
+{acts}
+</article>""")
+        coverage = f"""<h2 class="sec">Gauteng coverage</h2>
+<p>Every suburb-level place OpenStreetMap maps inside Gauteng, harvested
+live -- {len(suburbs)} suburbs, neighbourhoods, villages and towns. The
+directory's listings cover Sandton today; the rest is mapped ground for
+expansion, not indexed content.</p>
+<div class="grid">{dcards}</div>"""
+    else:
+        coverage = """<h2 class="sec">Gauteng coverage</h2>
+<p>Suburb mapping runs as a pipeline stage and has not produced its file
+yet. Coverage appears here after the first harvest.</p>"""
+
+    mailto = (f"mailto:hello@{SITE_URL.split('//')[1]}"
+              f"?subject=Claim%20my%20Sandton%20listing")
+    body = f"""<div class="hero"><div class="hero-grid"></div><div class="wrap">
+<div class="hero-eyebrow"><span class="dot"></span> Lead dashboard</div>
+<h1>{len(tier_a)} Sandton businesses<br><span class="grad">have no website</span></h1>
+<p>Every business in the index whose source record carries no website.
+Each one already has a page here and can claim it free -- hours, map,
+phone and directions.</p>
+<div class="hero-actions">
+<a class="btn" href="{mailto}">Claim your business</a>
+<a class="btn-2" href="{SITE_URL}/needs-a-website/">How claiming works</a>
+</div>
+</div></div>
+<div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
+<div class="stats">
+<div class="stat"><div class="stat-ico ico-blue">&#127978;</div>
+<b>{len(tier_a)}</b><span>No website</span></div>
+<div class="stat"><div class="stat-ico ico-teal">&#128222;</div>
+<b>{with_phone}</b><span>With phone</span></div>
+<div class="stat"><div class="stat-ico ico-green">&#9775;</div>
+<b>{len(hubs_hit)}</b><span>Categories</span></div>
+<div class="stat"><div class="stat-ico ico-amber">&#128205;</div>
+<b>{len(zones_hit)}</b><span>Suburbs</span></div>
+</div>
+<h2 class="sec">All {len(tier_a)} businesses</h2>
+{finder_html("Filter businesses", "Type a name, category or suburb",
+             "si-dash-grid")}
+<div class="grid" id="si-dash-grid">{cards}</div>
+{coverage}
+<div class="cta">
+<h2>One of these is yours?</h2>
+<p>Claiming is free and takes one email.</p>
+<a class="btn" href="{mailto}">Claim your business</a>
+</div>
+</div>"""
+    write(os.path.join("dashboard", "index.html"),
+          page(f"Businesses with no website | {SITE_NAME}",
+               f"{len(tier_a)} Sandton businesses have no website yet -- "
+               f"browse them all and claim a free page.",
+               body, f"{SITE_URL}/dashboard/",
+               extra_head=schema_site()))
+    print(f"  dashboard      : 1 ({len(tier_a)} no-website businesses, "
+          f"{len(suburbs)} Gauteng suburbs mapped)")
+
+
 # ---------------------------------------------------------------- properties
 CLASS_LABEL = {
     "residential": "Residential",
@@ -1866,6 +2010,9 @@ def main():
     print(f"  intent indexes : {n_intent}")
 
     print(f"  landings       : 2 (needs-a-website, hours-not-published)")
+
+    # 4a2. no-website dashboard (lead list + Gauteng coverage)
+    build_dashboard(records)
 
     # 4c. property pages (residential / commercial / industrial complexes)
     #

@@ -56,13 +56,17 @@ python scripts/07_classify_and_group.py   # tier, hub, branch grouping
 python scripts/08_harvest_hours.py        # OSM hours + category defaults
 python scripts/13_harvest_properties.py   # OSM complexes
 python scripts/15_harvest_cadastral.py    # Council for Geoscience parcels
+python scripts/16_harvest_gauteng_suburbs.py  # OSM suburbs, whole province
 python scripts/09_build_sites.py          # generate site/
 python scripts/verify_build.py            # gate; exits 1 on unsafe output
 ```
 
-The three harvest stages query free public endpoints that are frequently
+The four harvest stages query free public endpoints that are frequently
 overloaded, so `build_all.py` treats them as non-blocking: a failure warns and
-the build continues on whatever is cached on disk.
+the build continues on whatever is cached on disk. The Gauteng suburb harvest
+is the flakiest of the four -- district boundary geometry repeatedly times out
+the public mirrors, so suburb coordinates land first and district assignment
+follows when a fetch succeeds.
 
 ## Build inputs
 
@@ -107,11 +111,13 @@ scripts/07_classify_and_group.py  tier + hub + branch + URL assignment
 scripts/08_harvest_hours.py       OSM hours harvest, name-verified matching
 scripts/13_harvest_properties.py  OSM complexes via the /map API
 scripts/15_harvest_cadastral.py   Council for Geoscience Erf layer
+scripts/16_harvest_gauteng_suburbs.py  OSM suburb harvest, whole province
 scripts/09_build_sites.py         page generators
 scripts/assets/                   design system + behaviour (build inputs)
 scripts/verify_build.py           publish gate
 scripts/build_all.py              ordered pipeline
 data/businesses.json              enriched dataset
+data/gauteng_suburbs.json         1,242 OSM suburbs, coords, districts
 data/chain_report.csv             guard reclassifications, for review
 site/                             generated output (gitignored)
 ```
@@ -126,10 +132,11 @@ site/                             generated output (gitignored)
 | Business | `/{brand}/` | long-tail branded | Free page, Maps, hours |
 | Chain branch | `/{brand}/{suburb}-{category}/` | "woolworths sandton hours" | NAP + hours, no pitch |
 | Property | `/properties/{complex}/` | "apartments for sale sandton" | Building, class, area |
+| Dashboard | `/dashboard/` | "businesses with no website sandton" | All 380 tier-A leads + Gauteng coverage map |
 
 Subdirectory URLs only -- one repo, one build, no per-client DNS.
 
-Output: `site/` (859 pages, ~14 MB) and `data/businesses.json`.
+Output: `site/` (860 pages, ~14 MB) and `data/businesses.json`.
 
 ## Publishing
 
