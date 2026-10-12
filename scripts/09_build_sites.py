@@ -26,6 +26,7 @@ Design constraints that came out of the data, not preference:
 
 Outputs: site/ (ready to publish)
 """
+import csv
 import html
 import json
 import math
@@ -1232,6 +1233,27 @@ def _norm_place(s):
     return "".join(c for c in str(s or "").lower() if c.isalnum())
 
 
+def emit_gauteng_csv(gbiz):
+    """Full Gauteng business list as a downloadable CSV.
+
+    Columns are the harvest's own fields, so "website listed" can only
+    ever mean the OSM tag -- the header says so explicitly.
+    """
+    path = os.path.join(SITE, "assets", "gauteng-businesses.csv")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["name", "category", "district", "latitude", "longitude",
+                    "website_listed_in_osm", "website", "phone"])
+        for b in sorted(gbiz, key=lambda x: (x.get("district") or "",
+                                             x["name"].lower())):
+            w.writerow([b["name"], f"{b['key']}={b['value']}",
+                        b.get("district") or "",
+                        b["lat"], b["lon"],
+                        "yes" if b["has_website_osm"] else "no",
+                        b.get("website") or "", b.get("phone") or ""])
+
+
 def build_dashboard(records):
     """The no-website dashboard: every tier-A business plus Gauteng coverage.
 
@@ -1263,6 +1285,12 @@ def build_dashboard(records):
 
     gpath = os.path.join(DATA, "gauteng_suburbs.json")
     coverage = ""
+    gbiz_path = os.path.join(DATA, "gauteng_businesses.json")
+    try:
+        with open(gbiz_path, encoding="utf-8") as fh:
+            gbiz = json.load(fh)["businesses"]
+    except (OSError, ValueError):
+        gbiz = []
     # District slugs live in the gauteng-index repo (scripts/build.py,
     # DISTRICTS). They are repeated here so dashboard cards can link out;
     # if they ever drift, the links below are absolute and the breakage
@@ -1286,9 +1314,44 @@ def build_dashboard(records):
         suburbs = []
     if suburbs:
         indexed_names = {_norm_place(r["zone_display"]) for r in records}
+        gbiz_by_district = defaultdict(list)
+        for b in gbiz:
+            gbiz_by_district[b.get("district") or ""].append(b)
+        unassigned = len(gbiz_by_district.get("", []))
         by_district = defaultdict(list)
         for s in suburbs:
             by_district[s.get("district") or ""].append(s)
+        SHORT_DISTRICT = {
+            "City of Johannesburg Metropolitan Municipality": "Johannesburg",
+            "City of Ekurhuleni Metropolitan Municipality": "Ekurhuleni",
+            "City of Tshwane Metropolitan Municipality": "Tshwane",
+            "Sedibeng District Municipality": "Sedibeng",
+            "West Rand District Municipality": "West Rand",
+        }
+        # area-by-area website coverage: per mapped suburb, how many nearby
+        # businesses carry a website tag in OSM and how many do not.
+        # Businesses are assigned to their nearest mapped suburb within
+        # 5 km; sorted by no-website count so the strongest lead areas
+        # come first.
+        sub_cov = defaultdict(lambda: [0, 0])
+        for b in gbiz:
+            if not b.get("suburb"):
+                continue
+            key = (b["suburb"], b.get("district") or "")
+            if b["has_website_osm"]:
+                sub_cov[key][0] += 1
+            else:
+                sub_cov[key][1] += 1
+        sub_rows = "".join(
+            f"""<article class="card">
+<h3>{e(name)}</h3>
+<div class="meta">{e(SHORT_DISTRICT.get(dist, dist or "Unassigned"))}
+&middot; {w + wo} businesses</div>
+<div class="meta">{w} website listed &middot; {wo} not listed</div>
+</article>"""
+            for (name, dist), (w, wo) in
+            sorted(sub_cov.items(),
+                   key=lambda kv: (-kv[1][1], -(kv[1][0] + kv[1][1]))))
         dcards = ""
         for district in sorted(by_district):
             subs = by_district[district]
@@ -1303,24 +1366,56 @@ def build_dashboard(records):
                 note = (f"{matched} Sandton businesses name-matched here "
                         f"· district boundaries still being fetched from "
                         f"OpenStreetMap")
+            gb = gbiz_by_district.get(district, [])
+            harvest = ""
+            if gb:
+                with_site = sum(1 for b in gb if b["has_website_osm"])
+                harvest = (f"Gauteng harvest: {len(gb)} businesses · "
+                           f"{with_site} website listed in OSM · "
+                           f"{len(gb) - with_site} not listed")
+            acts = ""
             if district in GAUTENG_DISTRICT_SLUGS:
                 slug = GAUTENG_DISTRICT_SLUGS[district]
                 acts = (f'<div class="acts"><a href="{GAUTENG_URL}/districts/'
                         f'{slug}/">Open district &rarr;</a></div>')
-            else:
-                acts = ""
-            dcards += (f"""<article class="card">
+            dcards += f"""<article class="card">
 <div class="cat">{len(subs)} suburbs mapped</div>
 <h3>{e(label)}</h3>
 <div class="meta">{note}</div>
-{acts}
-</article>""")
+""" + (f'<div class="meta">{harvest}</div>' if harvest else "") + f"""{acts}
+</article>"""
         coverage = f"""<h2 class="sec">Gauteng coverage</h2>
 <p>Every suburb-level place OpenStreetMap maps inside Gauteng, harvested
 live -- {len(suburbs)} suburbs, neighbourhoods, villages and towns. The
 directory's listings cover Sandton today; the rest is mapped ground for
 expansion, not indexed content.</p>
 <div class="grid">{dcards}</div>"""
+        if sub_rows:
+            coverage += f"""<h2 class="sec">Website coverage, suburb by
+suburb</h2>
+<p>{len(sub_cov)} suburbs hold at least one mapped business. Each business
+is counted under its nearest mapped suburb within 5 km, and "website
+listed" means the OSM tag only -- never proof for or against a real
+website. Sorted with the most no-website businesses first.</p>
+{finder_html("Filter suburbs", "Type a suburb name", "si-sub-grid")}
+<div class="grid" id="si-sub-grid">{sub_rows}</div>"""
+        if gbiz:
+            emit_gauteng_csv(gbiz)
+            total_g = len(gbiz)
+            site_g = sum(1 for b in gbiz if b["has_website_osm"])
+            coverage += f"""<div class="cta">
+<h2>Gauteng-wide: {total_g} businesses, {total_g - site_g} with no website
+listed in OSM.</h2>
+<p>Counts come from OpenStreetMap tags, not from checking the web -- a
+missing tag is not proof a business has no website. The full list is
+yours to work.</p>
+<a class="btn" href="{SITE_URL}/assets/gauteng-businesses.csv">Download
+the full list (CSV)</a>
+</div>"""
+            if unassigned:
+                coverage += f"""<p>{unassigned} businesses sit further than
+5 km from any mapped suburb and are counted without a district rather
+than guessed into one.</p>"""
     else:
         coverage = """<h2 class="sec">Gauteng coverage</h2>
 <p>Suburb mapping runs as a pipeline stage and has not produced its file

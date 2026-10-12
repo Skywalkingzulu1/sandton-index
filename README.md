@@ -61,7 +61,7 @@ python scripts/09_build_sites.py          # generate site/
 python scripts/verify_build.py            # gate; exits 1 on unsafe output
 ```
 
-The four harvest stages query free public endpoints that are frequently
+The five harvest stages query free public endpoints that are frequently
 overloaded, so `build_all.py` treats them as non-blocking: a failure warns and
 the build continues on whatever is cached on disk. The Gauteng suburb harvest
 is the flakiest of the four -- district boundary geometry repeatedly times out
@@ -112,12 +112,14 @@ scripts/08_harvest_hours.py       OSM hours harvest, name-verified matching
 scripts/13_harvest_properties.py  OSM complexes via the /map API
 scripts/15_harvest_cadastral.py   Council for Geoscience Erf layer
 scripts/16_harvest_gauteng_suburbs.py  OSM suburb harvest, whole province
+scripts/17_harvest_gauteng_businesses.py  OSM businesses, website signal
 scripts/09_build_sites.py         page generators
 scripts/assets/                   design system + behaviour (build inputs)
 scripts/verify_build.py           publish gate
 scripts/build_all.py              ordered pipeline
 data/businesses.json              enriched dataset
 data/gauteng_suburbs.json         1,242 OSM suburbs, coords, districts
+data/gauteng_businesses.json      Gauteng-wide OSM businesses (gitignored, ~15k rows, rebuilt by harvest 17)
 data/chain_report.csv             guard reclassifications, for review
 site/                             generated output (gitignored)
 ```

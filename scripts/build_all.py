@@ -25,6 +25,7 @@ STAGES = [
     ("harvest properties", "13_harvest_properties.py"),
     ("harvest cadastral", "15_harvest_cadastral.py"),
     ("harvest gauteng suburbs", "16_harvest_gauteng_suburbs.py"),
+    ("harvest gauteng businesses", "17_harvest_gauteng_businesses.py"),
     ("build sites", "09_build_sites.py"),
     ("check css coverage", "test_css_coverage.py"),
     ("test search scoring", "test_search_js.js"),
@@ -44,7 +45,7 @@ NODE_TESTS = {"test search scoring", "test search render"}
 # generators treat both datasets as optional: no hours.json means no hours
 # module, no properties.json means no property pages.
 NON_BLOCKING = {"harvest hours", "harvest properties", "harvest cadastral",
-                "harvest gauteng suburbs"}
+                "harvest gauteng suburbs", "harvest gauteng businesses"}
 
 
 def main():

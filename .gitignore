@@ -7,6 +7,16 @@ site/
 # not delete it casually -- just do not commit it.
 data/_google_cache/
 
+# Cached OSM /map API tile responses for the Gauteng business harvest
+# (17_harvest_gauteng_businesses.py). Several GB when complete; re-runs
+# resume from it, so keep it locally but never commit it.
+data/_osm_biz_cache/
+
+# Gauteng-wide business list: ~15k records, multi-MB, rebuilt by re-running
+# the harvest. The Sandton directory (businesses.json) stays committed;
+# this province-scale derived file does not.
+data/gauteng_businesses.json
+
 # Local scratch
 *.bak
 *.tmp
