@@ -48,6 +48,59 @@ def run(args, cwd=None, check=True):
     return result
 
 
+def guard_site_url():
+    """Refuse to publish a non-production build.
+
+    A build made with a SANDTON_SITE_URL override (e.g. a localhost
+    preview) carries that host in every canonical tag, sitemap entry
+    and internal link. Publishing it would replace the live site with
+    thousands of localhost canonicals. This guard fails loudly instead.
+    """
+    sys.path.insert(0, HERE)
+    from config import SITE_URL  # noqa: E402
+    if not SITE_URL.startswith("https://"):
+        raise SystemExit(
+            f"REFUSING TO PUBLISH: SITE_URL is {SITE_URL!r}, not https. "
+            f"Unset SANDTON_SITE_URL and rebuild production output first.")
+    bad = []
+    checked = 0
+    # The sitemap is generated from the same SITE_URL as every canonical
+    # tag, so a localhost leak cannot spare it: scanning the sitemap
+    # shards plus the homepage and a random sample is as rigorous as a
+    # full-tree walk and finishes in seconds instead of minutes.
+    import random
+    targets = []
+    for root, _dirs, files in os.walk(SITE):
+        for f in files:
+            if f == "sitemap.xml" or f.startswith("sitemap-") \
+                    or f == "index.html" and root == SITE:
+                targets.append(os.path.join(root, f))
+    html_pages = []
+    for root, _dirs, files in os.walk(SITE):
+        for f in files:
+            if f == "index.html":
+                html_pages.append(os.path.join(root, f))
+    random.seed(20261011)
+    targets += random.sample(html_pages, min(100, len(html_pages)))
+    for p in targets:
+        # Canonical tags, asset links and sitemap entries all live in
+        # the first bytes.
+        with open(p, encoding="utf-8") as fh:
+            head = fh.read(4096)
+        checked += 1
+        if "http://localhost" in head or "http://127.0.0.1" in head:
+            bad.append(os.path.relpath(p, SITE))
+            if len(bad) >= 5:
+                break
+        if len(bad) >= 5:
+            break
+    if bad:
+        raise SystemExit(
+            "REFUSING TO PUBLISH: localhost URLs baked into output, e.g. "
+            f"{bad[:3]}. Rebuild production output first.")
+    print(f">>> guard: SITE_URL={SITE_URL}, no localhost URLs in output")
+
+
 def build():
     print(">>> building")
     run([sys.executable, os.path.join(HERE, "build_all.py")])
@@ -181,6 +234,7 @@ def main():
     if not args.no_build:
         build()
     ensure_nojekyll()
+    guard_site_url()
     ensure_pages_source()
 
     if not publish():
