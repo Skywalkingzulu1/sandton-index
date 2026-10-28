@@ -519,6 +519,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <meta property="og:description" content="{e(description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{e(canonical)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{e(title)}">
+<meta name="twitter:description" content="{e(description)}">
 <meta name="theme-color" content="#0052cc">
 <meta name="geo.region" content="ZA-GT">
 <meta name="geo.placename" content="Sandton, Johannesburg">
