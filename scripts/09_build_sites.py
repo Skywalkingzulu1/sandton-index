@@ -433,7 +433,12 @@ def tier_badge(rec):
     tier = rec.get("tier", "C")
     label = {"A": "No website yet", "B": "Chain location",
              "C": "Has website"}.get(tier, "")
-    return f'<span class="badge b-{tier.lower()}">{e(label)}</span>'
+    out = f'<span class="badge b-{tier.lower()}">{e(label)}</span>'
+    if tier == "A":
+        out += '<span class="badge b-dow">Eligible for free build</span>'
+    out += '<span class="badge b-dow">Verified DOW partner</span>'
+    out += '<span class="badge b-bbee">B-BBEE SED compliant</span>'
+    return out
 
 
 def header_html():
