@@ -531,6 +531,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
 {extra_head}
 <link rel="preload" as="style" href="{asset_url('sandton.css')}">
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="{asset_url('sandton.css')}">
 </head>
 <body>
