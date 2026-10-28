@@ -920,6 +920,7 @@ Sandton</label>
 <div class="hero-actions">
 <a class="btn" href="{SITE_URL}/categories/">Browse categories</a>
 <a class="btn-2" href="{SITE_URL}/zones/">Browse suburbs</a>
+<a class="btn-2" href="{SITE_URL}/impact/">About / Impact</a>
 </div>
 </div></div>
 <div class="wrap" style="position:relative;z-index:3;padding-top:2rem">
